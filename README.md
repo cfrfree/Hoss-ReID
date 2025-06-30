@@ -1,6 +1,6 @@
 #  Cross-modal Ship Re-identification via Optical and SAR Imagery: A Novel Dataset and Method
 
-### [**📝Paper**]() | [**🗃️Dataset**](https://zenodo.org/records/15751352) | [**🤖Models**]()
+### [**📝Paper**](https://arxiv.org/abs/2506.22027) | [**🗃️Dataset**](https://zenodo.org/records/15751352) | [**🤖Models**]()
 The official repository for HOSS ReID Dataset and TransOSS.
 
 ## Abstract
@@ -56,6 +56,19 @@ CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --nproc_per_node=2 -
 ## Evaluation
 ```bash
 python test.py --config_file configs/hoss_transoss.yml MODEL.DEVICE_ID "('0')"  TEST.WEIGHT 'weights/HOSS_TransOSS.pth'
+```
+
+## Citation
+```
+@misc{wang2025crossmodal,
+      title={Cross-modal Ship Re-Identification via Optical and SAR Imagery: A Novel Dataset and Method}, 
+      author={Han Wang and Shengyang Li and Jian Yang and Yuxuan Liu and Yixuan Lv and Zhuang Zhou},
+      year={2025},
+      eprint={2506.22027},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2506.22027}, 
+}
 ```
 
 ## Acknowledgement
