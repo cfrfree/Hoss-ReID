@@ -1,11 +1,5 @@
 # encoding: utf-8
-"""
-@author:  alioth
-"""
-
-import glob, cv2
-from PIL import Image
-import numpy as np
+import glob
 import os.path as osp
 from .bases import BaseImageDataset
 
@@ -41,26 +35,27 @@ class HOSS(BaseImageDataset):
         self.query = query
         self.gallery = gallery
 
-        self.num_train_pids, self.num_train_imgs, self.num_train_cams = self.get_imagedata_info(self.train)
-        self.num_train_pair_pids, self.num_train_pair_imgs, self.num_train_pair_cams = self.get_imagedata_info_pair(self.train_pair)
-        self.num_query_pids, self.num_query_imgs, self.num_query_cams = self.get_imagedata_info(self.query)
-        self.num_gallery_pids, self.num_gallery_imgs, self.num_gallery_cams = self.get_imagedata_info(self.gallery)
-
+        self.num_train_pids, self.num_train_imgs, self.num_train_cams, self.num_train_vids = self.get_imagedata_info(self.train)
+        self.num_train_pair_pids, self.num_train_pair_imgs, self.num_train_pair_cams, self.num_train_pair_vids = self.get_imagedata_info_pair(self.train_pair)
+        self.num_query_pids, self.num_query_imgs, self.num_query_cams, self.num_query_vids = self.get_imagedata_info(self.query)
+        self.num_gallery_pids, self.num_gallery_imgs, self.num_gallery_cams, self.num_gallery_vids = self.get_imagedata_info(self.gallery)
 
     def get_imagedata_info_pair(self, data):
-        pids, cams = [], []
+        pids, cams, tracks = [], [], []
 
         for img in data:
-            for _, pid, camid in img:
+            for _, pid, camid, trackid in img:
                 pids += [pid]
                 cams += [camid]
+                tracks += [trackid]
         pids = set(pids)
         cams = set(cams)
+        tracks = set(tracks)
         num_pids = len(pids)
         num_cams = len(cams)
         num_imgs = len(data)
-        return num_pids, num_imgs, num_cams
-
+        num_views = len(tracks)
+        return num_pids, num_imgs, num_cams, num_views
 
     def _check_before_run(self):
         """Check if all files are available before going deeper"""
@@ -72,7 +67,6 @@ class HOSS(BaseImageDataset):
             raise RuntimeError("'{}' is not available".format(self.query_dir))
         if not osp.exists(self.gallery_dir):
             raise RuntimeError("'{}' is not available".format(self.gallery_dir))
-
 
     def _process_dir(self, dir_path, relabel=False):
         img_paths = glob.glob(osp.join(dir_path, '*.tif'))
@@ -89,9 +83,8 @@ class HOSS(BaseImageDataset):
             camid = 0 if img_path.split('/')[-1].split('_')[-1] == 'RGB.tif' else 1
             if relabel: pid = pid2label[pid]
 
-            dataset.append((img_path, self.pid_begin + pid, camid))
+            dataset.append((img_path, self.pid_begin + pid, camid, 1))
         return dataset
-
 
     def _process_dir_train(self, dir_path, relabel=False):
         img_paths = glob.glob(osp.join(dir_path, '*.tif'))
@@ -116,7 +109,7 @@ class HOSS(BaseImageDataset):
             # camid 0 for RGB, 1 for SAR
             camid = 0 if img_path.split('/')[-1].split('_')[-1] == 'RGB.tif' else 1
             if relabel: pid = pid2label[pid]
-            dataset.append((img_path, self.pid_begin + pid, camid))
+            dataset.append((img_path, self.pid_begin + pid, camid, 1))
 
         dataset_pair = []
         for img_path in sorted(RGB_paths):
@@ -124,8 +117,7 @@ class HOSS(BaseImageDataset):
             if pid not in pid2sar.keys():
                 continue
             for sar_path in pid2sar[pid]:
-                dataset_pair.append([(img_path, self.pid_begin + pid, 0),
-                                     (sar_path, self.pid_begin + pid, 1)])
-
+                dataset_pair.append([(img_path, self.pid_begin + pid, 0, 1),
+                                     (sar_path, self.pid_begin + pid, 1, 1)])
 
         return dataset, dataset_pair

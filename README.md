@@ -1,6 +1,6 @@
 #  Cross-modal Ship Re-identification via Optical and SAR Imagery: A Novel Dataset and Method
 
-### [**📝Paper**](https://arxiv.org/abs/2506.22027) | [**🗃️Dataset**](https://zenodo.org/records/15751352) | [**🤖Models**]()
+### [**📝Paper**](https://arxiv.org/abs/2506.22027) | [**🗃️Dataset**](https://zenodo.org/records/15751352) | [**🤖Models**](https://huggingface.co/Alioth2000/TransOSS/tree/main)
 The official repository for HOSS ReID Dataset and TransOSS.
 
 ## Abstract

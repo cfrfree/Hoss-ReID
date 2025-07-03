@@ -1,6 +1,6 @@
 MODEL:
   PRETRAIN_CHOICE: 'imagenet'
-  PRETRAIN_PATH: 'weights/vit_base_p16_224-4e355ebd.pth'
+  PRETRAIN_PATH: 'weights/vit_base_p16_224-4e355ebd.pth' # https://github.com/huggingface/pytorch-image-models/releases/download/v0.1-weights/vit_base_p16_224-4e355ebd.pth
   NAME: 'transformer'
   NO_MARGIN: True
   DEVICE_ID: ('0')

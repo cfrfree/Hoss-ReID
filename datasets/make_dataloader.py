@@ -20,33 +20,36 @@ __factory = {
 
 def train_collate_fn(batch):
     """
-    # The input to collate_fn is a list, the length of the list is a batch size, and each element of the list is the result of __getitem__.
+    # collate_fn这个函数的输入就是一个list，list的长度是一个batch size，list中的每个元素都是__getitem__得到的结果
     """
-    imgs, pids, camids , _, img_size = zip(*batch)
+    imgs, pids, camids, viewids , _, img_size = zip(*batch)
     pids = torch.tensor(pids, dtype=torch.int64)
+    viewids = torch.tensor(viewids, dtype=torch.int64)
     camids = torch.tensor(camids, dtype=torch.int64)
     img_size = torch.tensor(img_size, dtype=torch.float32)
-    return torch.stack(imgs, dim=0), pids, camids, img_size
+    return torch.stack(imgs, dim=0), pids, camids, viewids, img_size
 
 
 def train_pair_collate_fn(batch):
     """
-    # The input to collate_fn is a list, the length of the list is a batch size, and each element of the list is the result of __getitem__.
+    # collate_fn这个函数的输入就是一个list，list的长度是一个batch size，list中的每个元素都是__getitem__得到的结果
     """
     rgb_batch = [i[0] for i in batch]
     sar_batch = [i[1] for i in batch]
     batch = rgb_batch + sar_batch
-    imgs, pids, camids , _, img_size = zip(*batch)
+    imgs, pids, camids, viewids , _, img_size = zip(*batch)
     pids = torch.tensor(pids, dtype=torch.int64)
+    viewids = torch.tensor(viewids, dtype=torch.int64)
     camids = torch.tensor(camids, dtype=torch.int64)
-    return torch.stack(imgs, dim=0), pids, camids
+    return torch.stack(imgs, dim=0), pids, camids, viewids
 
 
 def val_collate_fn(batch):
-    imgs, pids, camids, img_paths, img_size = zip(*batch)
+    imgs, pids, camids, viewids, img_paths, img_size = zip(*batch)
+    viewids = torch.tensor(viewids, dtype=torch.int64)
     camids_batch = torch.tensor(camids, dtype=torch.int64)
     img_size = torch.tensor(img_size, dtype=torch.float32)
-    return torch.stack(imgs, dim=0), pids, camids, camids_batch, img_paths, img_size
+    return torch.stack(imgs, dim=0), pids, camids, camids_batch, viewids, img_paths, img_size
 
 
 def make_dataloader(cfg):

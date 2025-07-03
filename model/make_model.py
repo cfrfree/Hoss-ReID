@@ -71,7 +71,7 @@ class Backbone(nn.Module):
 
         if pretrain_choice == 'imagenet':
             self.base.load_param(model_path)
-            print('Loading pretrained ImageNet model......from {}'.format(model_path))
+            print('Loading pretrained model......from {}'.format(model_path))
 
         self.num_classes = num_classes
 
@@ -151,7 +151,7 @@ class build_transformer(nn.Module):
             raise ValueError('Unsupported model type: {}'.format(cfg.MODEL.TRANSFORMER_TYPE))
         if pretrain_choice == 'imagenet':
             self.base.load_param(model_path)
-            print('Loading pretrained ImageNet model......from {}'.format(model_path))
+            print('Loading pretrained model......from {}'.format(model_path))
 
         self.num_classes = num_classes
         self.ID_LOSS_TYPE = cfg.MODEL.ID_LOSS_TYPE

@@ -136,7 +136,7 @@ def do_train(cfg,
         evaluator.reset()
         scheduler.step(epoch)
         model.train()
-        for n_iter, (img, vid, target_cam, img_wh) in enumerate(train_loader):
+        for n_iter, (img, vid, target_cam, target_view, img_wh) in enumerate(train_loader):
             optimizer.zero_grad()
             optimizer_center.zero_grad()
             img = img.to(device)
@@ -208,7 +208,7 @@ def do_train(cfg,
                     torch.cuda.empty_cache()
             else:
                 model.eval()
-                for n_iter, (img, vid, camid, camids, _, img_wh) in enumerate(val_loader):
+                for n_iter, (img, vid, camid, camids, target_view, _, img_wh) in enumerate(val_loader):
                     with torch.no_grad():
                         img = img.to(device)
                         camids = camids.to(device)
@@ -248,9 +248,8 @@ def do_inference(cfg,
         with torch.no_grad():
             img = img.to(device)
             camids = camids.to(device)
-            target_view = target_view.to(device)
             img_wh = img_wh.to(device)
-            feat = model(img, cam_label=camids, view_label=target_view, img_wh=img_wh)
+            feat = model(img, cam_label=camids, img_wh=img_wh)
             evaluator.update((feat, pid, camid))
             img_path_list.extend(imgpath)
 

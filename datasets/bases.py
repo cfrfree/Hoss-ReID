@@ -38,17 +38,20 @@ class BaseDataset(object):
     """
 
     def get_imagedata_info(self, data):
-        pids, cams = [], []
+        pids, cams, tracks = [], [], []
 
-        for _, pid, camid in data:
+        for _, pid, camid, trackid in data:
             pids += [pid]
             cams += [camid]
+            tracks += [trackid]
         pids = set(pids)
         cams = set(cams)
+        tracks = set(tracks)
         num_pids = len(pids)
         num_cams = len(cams)
         num_imgs = len(data)
-        return num_pids, num_imgs, num_cams
+        num_views = len(tracks)
+        return num_pids, num_imgs, num_cams, num_views
 
     def print_dataset_statistics(self):
         raise NotImplementedError
@@ -61,9 +64,9 @@ class BaseImageDataset(BaseDataset):
 
     def print_dataset_statistics(self, train, query, gallery):
         if train is not None:
-            num_train_pids, num_train_imgs, num_train_cams = self.get_imagedata_info(train)
-        num_query_pids, num_query_imgs, num_query_cams = self.get_imagedata_info(query)
-        num_gallery_pids, num_gallery_imgs, num_gallery_cams = self.get_imagedata_info(gallery)
+            num_train_pids, num_train_imgs, num_train_cams, num_train_views = self.get_imagedata_info(train)
+        num_query_pids, num_query_imgs, num_query_cams, num_train_views = self.get_imagedata_info(query)
+        num_gallery_pids, num_gallery_imgs, num_gallery_cams, num_train_views = self.get_imagedata_info(gallery)
 
         print("Dataset statistics:")
         print("  ----------------------------------------")
@@ -83,10 +86,8 @@ class ImageDataset(Dataset):
 
         self.pair = pair
 
-
     def __len__(self):
         return len(self.dataset)
-
 
     def get_image(self, img_path):
         if img_path.endswith('SAR.tif'):
@@ -97,25 +98,20 @@ class ImageDataset(Dataset):
             img = read_image(img_path).convert('RGB')
             img_size = img.size
             img_size = [img_size[0] * 0.75, img_size[1] * 0.75]
-            # img_size =((img_size[0] / 130 - 0.33238) / 0.01773, (img_size[1] / 678-0.37445) / 0.02000, img_size[1] / img_size[0])
-        # img_size = ((img_size[0] - 43.209059) / 299.55908, (img_size[1] - 253.87630662020905) / 9193.529996, img_size[1] / img_size[0])
-        # img_size = ((img_size[0] - 43.209059), (img_size[1] - 253.87630662020905),
-        #             img_size[1] / img_size[0])
         img_size = ((img_size[0] / 93 - 0.434) / 0.031, (img_size[1] / 427-0.461) / 0.031, img_size[1] / img_size[0])
         if self.transform is not None:
             img = self.transform(img)
         return img, img_size
 
-
     def __getitem__(self, index):
         if self.pair:
             imgs = []
             for img in self.dataset[index]:
-                img_path, pid, camid = img
+                img_path, pid, camid, trackid = img
                 im, img_size = self.get_image(img_path)
-                imgs.append((im, pid, camid, img_path.split('/')[-1], img_size))
+                imgs.append((im, pid, camid, trackid, img_path.split('/')[-1], img_size))
             return imgs
         else:
-            img_path, pid, camid = self.dataset[index]
+            img_path, pid, camid, trackid = self.dataset[index]
             img, img_size = self.get_image(img_path)
-            return img, pid, camid, img_path.split('/')[-1], img_size
+            return img, pid, camid, trackid, img_path.split('/')[-1], img_size
