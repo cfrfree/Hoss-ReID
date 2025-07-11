@@ -1,6 +1,6 @@
 #  Cross-modal Ship Re-identification via Optical and SAR Imagery: A Novel Dataset and Method
 
-### [**📝Paper**](https://arxiv.org/abs/2506.22027) | [**🗃️Dataset**](https://zenodo.org/records/15751352) | [**🤖Models**](https://huggingface.co/Alioth2000/TransOSS/tree/main)
+### [**📝Paper**](https://arxiv.org/abs/2506.22027) | [**🗃️Dataset**](https://zenodo.org/records/15860212) | [**🤖Models**](https://huggingface.co/Alioth2000/TransOSS/tree/main)
 The official repository for HOSS ReID Dataset and TransOSS.
 
 ## Abstract
@@ -15,12 +15,20 @@ Furthermore, we propose a baseline method for cross-modal ship re-identification
 It refines the patch embedding structure to better accommodate cross-modal tasks, incorporates additional embeddings to introduce more reference information, and employs contrastive learning to pre-train on large-scale optical-SAR image pairs, ensuring the model's ability to extract modality-invariant features.
 
 ## HOSS ReID Dataset
-The dataset is publicly available at [zenodo](https://zenodo.org/records/15751352). \
-If you want to run TransOSS, place the dataset in the `data` directory like:
+The HOSS ReID dataset and the associated pretraining dataset are publicly available on [zenodo](https://zenodo.org/records/15860212). \
+The pretraining dataset is constructed based on the [SEN1-2](https://www.kaggle.com/datasets/requiemonk/sentinel12-image-pairs-segregated-by-terrain) and [DFC23](https://ieee-dataport.org/competitions/2023-ieee-grss-data-fusion-contest-large-scale-fine-grained-building-classification) datasets. \
+To run TransOSS, please organize the data in the following structure under the `data` directory:
 ```
 data
-└── HOSS
-    └── bounding_box_test ..
+├── HOSS
+│   ├── bounding_box_test
+│   ├── bounding_box_train
+│   └── ...
+└── OptiSar_Pair
+    ├── 0001
+    ├── 0002
+    └── ...
+
 ```
 
 ![framework](figs/dataset.png)
