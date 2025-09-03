@@ -127,7 +127,7 @@ class RandomIdentitySampler_DDP(Sampler):
         self.num_pids_per_batch = self.mini_batch_size // self.num_instances
         self.index_dic = defaultdict(list)
 
-        for index, (_, pid, _) in enumerate(self.data_source):
+        for index, (_, pid, _, _) in enumerate(self.data_source):
             self.index_dic[pid].append(index)
         self.pids = list(self.index_dic.keys())
 
