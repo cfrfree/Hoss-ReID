@@ -65,7 +65,13 @@ def make_dataloader(cfg):
         ]
     )
 
-    val_transforms = T.Compose([T.Resize(cfg.INPUT.SIZE_TEST), T.ToTensor(), T.Normalize(mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD)])
+    val_transforms = T.Compose(
+        [
+            T.Resize(cfg.INPUT.SIZE_TEST),
+            T.ToTensor(),
+            T.Normalize(mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD)
+        ]
+    )
 
     num_workers = cfg.DATALOADER.NUM_WORKERS
 
@@ -99,15 +105,20 @@ def make_dataloader(cfg):
             )
     elif cfg.DATALOADER.SAMPLER == "softmax":
         print("using softmax sampler")
-        train_loader = DataLoader(train_set, batch_size=cfg.SOLVER.IMS_PER_BATCH, shuffle=True, num_workers=num_workers, collate_fn=train_collate_fn)
+        train_loader = DataLoader(
+            train_set, batch_size=cfg.SOLVER.IMS_PER_BATCH, shuffle=True, num_workers=num_workers, collate_fn=train_collate_fn
+        )
     else:
         print("unsupported sampler! expected softmax or triplet but got {}".format(cfg.SAMPLER))
 
     val_set = ImageDataset(dataset.query + dataset.gallery, val_transforms)
 
-    val_loader = DataLoader(val_set, batch_size=cfg.TEST.IMS_PER_BATCH, shuffle=False, num_workers=num_workers, collate_fn=val_collate_fn)
+    val_loader = DataLoader(
+        val_set, batch_size=cfg.TEST.IMS_PER_BATCH, shuffle=False, num_workers=num_workers, collate_fn=val_collate_fn
+    )
     train_loader_normal = DataLoader(
-        train_set_normal, batch_size=cfg.TEST.IMS_PER_BATCH, shuffle=False, num_workers=num_workers, collate_fn=val_collate_fn
+        train_set_normal, batch_size=cfg.TEST.IMS_PER_BATCH, shuffle=False, num_workers=num_workers, 
+        collate_fn=val_collate_fn
     )
     if cfg.SOLVER.IMS_PER_BATCH % 2 != 0:
         raise ValueError("cfg.SOLVER.IMS_PER_BATCH should be even number")
@@ -139,6 +150,7 @@ def make_dataloader_pair(cfg):
     if cfg.SOLVER.IMS_PER_BATCH % 2 != 0:
         raise ValueError("cfg.SOLVER.IMS_PER_BATCH should be even number")
     train_loader_pair = DataLoader(
-        train_set_pair, batch_size=int(cfg.SOLVER.IMS_PER_BATCH / 2), shuffle=True, num_workers=num_workers, collate_fn=train_pair_collate_fn
+        train_set_pair, batch_size=int(cfg.SOLVER.IMS_PER_BATCH / 2), shuffle=True, num_workers=num_workers, 
+        collate_fn=train_pair_collate_fn
     )
     return train_loader_pair, num_classes, cam_num

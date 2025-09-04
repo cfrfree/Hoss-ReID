@@ -29,7 +29,11 @@ def _serialize_to_tensor(data, group):
 
     buffer = pickle.dumps(data)
     if len(buffer) > 1024**3:
-        print("Rank {} trying to all-gather {:.2f} GB of data on device {}".format(dist.get_rank(), len(buffer) / (1024**3), device))
+        print(
+            "Rank {} trying to all-gather {:.2f} GB of data on device {}".format(
+                dist.get_rank(), len(buffer) / (1024**3), device
+            )
+        )
     storage = torch.ByteStorage.from_buffer(buffer)
     tensor = torch.ByteTensor(storage).to(device=device)
     return tensor
