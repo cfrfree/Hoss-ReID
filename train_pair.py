@@ -23,15 +23,10 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = True
 
 
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser(description="ReID Baseline Training")
-    parser.add_argument(
-        "--config_file", default="", help="path to config file", type=str
-    )
-
-    parser.add_argument("opts", help="Modify config options using the command-line", default=None,
-                        nargs=argparse.REMAINDER)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="TransOSS Pretraining")
+    parser.add_argument("--config_file", default="", help="path to config file", type=str)
+    parser.add_argument("opts", help="Modify config options using the command-line", default=None, nargs=argparse.REMAINDER)
     parser.add_argument("--local-rank", default=0, type=int)
     args = parser.parse_args()
 
@@ -55,16 +50,16 @@ if __name__ == '__main__':
 
     if args.config_file != "":
         logger.info("Loaded configuration file {}".format(args.config_file))
-        with open(args.config_file, 'r') as cf:
+        with open(args.config_file, "r") as cf:
             config_str = "\n" + cf.read()
             logger.info(config_str)
     logger.info("Running with config:\n{}".format(cfg))
 
     if cfg.MODEL.DIST_TRAIN:
-        torch.distributed.init_process_group(backend='nccl', init_method='env://')
+        torch.distributed.init_process_group(backend="nccl", init_method="env://")
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = cfg.MODEL.DEVICE_ID
-    train_loader_pair, val_loader, num_query, num_classes, camera_num = make_dataloader_pair(cfg)
+    os.environ["CUDA_VISIBLE_DEVICES"] = cfg.MODEL.DEVICE_ID
+    train_loader_pair, num_classes, camera_num = make_dataloader_pair(cfg)
 
     model = make_model(cfg, num_class=num_classes, camera_num=camera_num)
 
@@ -74,13 +69,4 @@ if __name__ == '__main__':
 
     scheduler = create_scheduler(cfg, optimizer)
 
-    do_train_pair(
-        cfg,
-        model,
-        train_loader_pair,
-        val_loader,
-        optimizer,
-        scheduler,
-        num_query,
-        args.local_rank
-    )
+    do_train_pair(cfg, model, train_loader_pair, optimizer, scheduler, args.local_rank)

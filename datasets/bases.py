@@ -4,6 +4,7 @@ from torch.utils.data import Dataset
 import os.path as osp
 import cv2
 import numpy as np
+
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
@@ -39,7 +40,6 @@ class BaseDataset(object):
 
     def get_imagedata_info(self, data):
         pids, cams, tracks = [], [], []
-
         for _, pid, camid, trackid in data:
             pids += [pid]
             cams += [camid]
@@ -90,15 +90,15 @@ class ImageDataset(Dataset):
         return len(self.dataset)
 
     def get_image(self, img_path):
-        if img_path.endswith('SAR.tif'):
+        if img_path.endswith("SAR.tif"):
             img = read_image(img_path)
             img = sar32bit2RGB(img)
             img_size = img.size
         else:
-            img = read_image(img_path).convert('RGB')
+            img = read_image(img_path).convert("RGB")
             img_size = img.size
             img_size = [img_size[0] * 0.75, img_size[1] * 0.75]
-        img_size = ((img_size[0] / 93 - 0.434) / 0.031, (img_size[1] / 427-0.461) / 0.031, img_size[1] / img_size[0])
+        img_size = ((img_size[0] / 93 - 0.434) / 0.031, (img_size[1] / 427 - 0.461) / 0.031, img_size[1] / img_size[0])
         if self.transform is not None:
             img = self.transform(img)
         return img, img_size
@@ -107,11 +107,11 @@ class ImageDataset(Dataset):
         if self.pair:
             imgs = []
             for img in self.dataset[index]:
-                img_path, pid, camid, trackid = img
+                img_path, pid, camid = img
                 im, img_size = self.get_image(img_path)
-                imgs.append((im, pid, camid, trackid, img_path.split('/')[-1], img_size))
+                imgs.append((im, pid, camid, img_path.split("/")[-1], img_size))
             return imgs
         else:
             img_path, pid, camid, trackid = self.dataset[index]
             img, img_size = self.get_image(img_path)
-            return img, pid, camid, trackid, img_path.split('/')[-1], img_size
+            return img, pid, camid, trackid, img_path.split("/")[-1], img_size
