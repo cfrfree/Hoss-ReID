@@ -9,9 +9,9 @@ from .bases import BaseImageDataset
 
 
 class Pretrain(BaseImageDataset):
-    dataset_dir = 'OptiSar_Pair'
+    dataset_dir = "OptiSar_Pair"
 
-    def __init__(self, root='', verbose=True, pid_begin = 0, **kwargs):
+    def __init__(self, root="", verbose=True, pid_begin=0, **kwargs):
         super(Pretrain, self).__init__()
         self.dataset_dir = osp.join(root, self.dataset_dir)
         self.train_dir = self.dataset_dir
@@ -28,15 +28,12 @@ class Pretrain(BaseImageDataset):
         self.train = train
         self.train_pair = train_pair
 
-        self.num_train_pids, self.num_train_imgs, self.num_train_cams = self.get_imagedata_info(self.train)
         self.num_train_pair_pids, self.num_train_pair_imgs, self.num_train_pair_cams = self.get_imagedata_info_pair(self.train_pair)
-
 
     def get_imagedata_info_pair(self, data):
         pids, cams = [], []
-
         for img in data:
-            for _, pid, camid, trackid in img:
+            for _, pid, camid in img:
                 pids += [pid]
                 cams += [camid]
         pids = set(pids)
@@ -46,18 +43,17 @@ class Pretrain(BaseImageDataset):
         num_imgs = len(data)
         return num_pids, num_imgs, num_cams
 
-
     def _process_dir_train(self, dir_path, relabel=False):
-        img_paths = glob.glob(osp.join(dir_path, '*/*'))
+        img_paths = glob.glob(osp.join(dir_path, "*/*"))
 
-        RGB_paths = [i for i in img_paths if i.endswith('RGB.tif') or i.endswith('RGB.png')]
+        RGB_paths = [i for i in img_paths if i.endswith("RGB.tif") or i.endswith("RGB.png")]
         pid2sar = {}
 
         pid_container = set()
         for img_path in sorted(img_paths):
-            pid = int(img_path.split('/')[-1].split('_')[1])
+            pid = int(img_path.split("/")[-1].split("_")[1])
             pid_container.add(pid)
-            if img_path.endswith(f'SAR.tif') or img_path.endswith(f'SAR.png'):
+            if img_path.endswith(f"SAR.tif") or img_path.endswith(f"SAR.png"):
                 if pid not in pid2sar:
                     pid2sar[pid] = [img_path]
                 else:
@@ -66,20 +62,20 @@ class Pretrain(BaseImageDataset):
 
         dataset = []
         for img_path in sorted(img_paths):
-            pid = int(img_path.split('/')[-1].split('_')[1])
+            pid = int(img_path.split("/")[-1].split("_")[1])
             # camid 0 for RGB, 1 for SAR
-            camid = 0 if img_path.split('/')[-1].split('_')[-1].split('.')[0] == 'RGB' else 1
-            if relabel: pid = pid2label[pid]
+            camid = 0 if img_path.split("/")[-1].split("_")[-1].split(".")[0] == "RGB" else 1
+            if relabel:
+                pid = pid2label[pid]
             dataset.append((img_path, self.pid_begin + pid, camid))
 
         dataset_pair = []
         for img_path in sorted(RGB_paths):
-            pid = int(img_path.split('/')[-1].split('_')[1])
+            pid = int(img_path.split("/")[-1].split("_")[1])
             if pid not in pid2sar.keys():
                 continue
             for sar_path in pid2sar[pid]:
-                dataset_pair.append([(img_path, self.pid_begin + pid, 0),
-                                     (sar_path, self.pid_begin + pid, 1)])
+                dataset_pair.append([(img_path, self.pid_begin + pid, 0), (sar_path, self.pid_begin + pid, 1)])
 
         max_pid = max(pid_container)
 

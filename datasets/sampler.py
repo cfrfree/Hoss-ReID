@@ -64,4 +64,3 @@ class RandomIdentitySampler(Sampler):
 
     def __len__(self):
         return self.length
-
