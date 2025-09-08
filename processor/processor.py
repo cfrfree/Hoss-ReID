@@ -226,19 +226,17 @@ def do_inference(cfg, model, val_loader, num_query):
         model.to(device)
 
     model.eval()
-    img_path_list = []
 
-    for n_iter, (img, pid, camid, camids, target_view, imgpath, img_wh) in enumerate(val_loader):
+    for n_iter, (img, pid, camid, camids, _, _, img_wh) in enumerate(val_loader):
         with torch.no_grad():
             img = img.to(device)
             camids = camids.to(device)
             img_wh = img_wh.to(device)
             feat = model(img, cam_label=camids, img_wh=img_wh)
             evaluator.update((feat, pid, camid))
-            img_path_list.extend(imgpath)
 
     cmc, mAP, _, _, _, _, _ = evaluator.compute()
-    logger.info("Validation Results ")
+    logger.info("Inference Results ")
     logger.info("mAP: {:.1%}".format(mAP))
     for r in [1, 5, 10]:
         logger.info("CMC curve, Rank-{:<3}:{:.1%}".format(r, cmc[r - 1]))

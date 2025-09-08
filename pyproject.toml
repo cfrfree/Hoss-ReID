@@ -1,0 +1,14 @@
+# pyproject.toml
+
+[tool.black]
+line-length = 150
+target-version = ['py39']
+
+exclude = '''
+/(
+    \.venv
+  | build
+  | migrations
+)/
+'''
+# include = '\.pyi?$'

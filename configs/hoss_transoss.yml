@@ -1,6 +1,7 @@
 MODEL:
   PRETRAIN_CHOICE: 'imagenet'
-  PRETRAIN_PATH: 'weights/vit_b512_pre.pth'
+  # PRETRAIN_PATH: "/home/chenfree2002/Python/checkpoints/swin_base_patch4_window12_384_22k.pth"
+  PRETRAIN_PATH: "/home/share/chenfree/ReID/vit_b512_pre.pth"
   METRIC_LOSS_TYPE: 'triplet'
   IF_LABELSMOOTH: 'off'
   IF_WITH_CENTER: 'no'
@@ -8,15 +9,17 @@ MODEL:
   NO_MARGIN: True
   DEVICE_ID: ('0')
   TRANSFORMER_TYPE: 'vit_base_patch16_224_TransOSS'
-  STRIDE_SIZE: [16, 16]
+#   TRANSFORMER_TYPE: 'swin_base_patch4_window7_224_TransReID'
+  # TRANSFORMER_TYPE: 'swin_base_patch4_window12_384'
+  STRIDE_SIZE: [8,8]
   MIE: True
   MIE_COE: 3.0
   SSE: True
   PAIR: False
 
 INPUT:
-  SIZE_TRAIN: [256, 128]
-  SIZE_TEST: [256, 128]
+  SIZE_TRAIN: [256,128]
+  SIZE_TEST: [256,128]
   PROB: 0.5 # random horizontal flip
   RE_PROB: 0.5 # random erasing
   PADDING: 10
@@ -25,12 +28,12 @@ INPUT:
 
 DATASETS:
   NAMES: ('HOSS')
-  ROOT_DIR: ('../dataset')
+  ROOT_DIR: ('/home/share/chenfree/ReID/')
 
 DATALOADER:
   SAMPLER: 'softmax_triplet'
   NUM_INSTANCE: 4
-  NUM_WORKERS: 8
+  NUM_WORKERS: 4
 
 SOLVER:
   OPTIMIZER_NAME: 'SGD'
@@ -39,8 +42,8 @@ SOLVER:
   IMS_PER_BATCH: 32
   WARMUP_METHOD: 'linear'
   LARGE_FC_LR: False
-  CHECKPOINT_PERIOD: 10
-  LOG_PERIOD: 80
+  CHECKPOINT_PERIOD: 50
+  LOG_PERIOD: 50
   EVAL_PERIOD: 10
   WEIGHT_DECAY:  1e-4
   WEIGHT_DECAY_BIAS: 1e-4
@@ -48,10 +51,10 @@ SOLVER:
 
 TEST:
   EVAL: True
-  IMS_PER_BATCH: 256
+  IMS_PER_BATCH: 32
   RE_RANKING: False
-  WEIGHT: ''
+  WEIGHT: '/home/chenfree2002/Python/Hoss-ReID/logs/hoss_transoss_b32_stride8/transformer_200.pth'
   NECK_FEAT: 'before'
   FEAT_NORM: 'yes'
 
-OUTPUT_DIR: './logs/hoss_transoss'
+OUTPUT_DIR: './logs/hoss_transoss_224_s2_b32_sgd'

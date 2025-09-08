@@ -11,16 +11,17 @@ import torch
 # separating MultiStepLR with WarmupLR
 # but the current LRScheduler design doesn't allow it
 
+
 class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
     def __init__(
-            self,
-            optimizer,
-            milestones,  # steps
-            gamma=0.1,
-            warmup_factor=1.0 / 3,
-            warmup_iters=500,
-            warmup_method="linear",
-            last_epoch=-1,
+        self,
+        optimizer,
+        milestones,  # steps
+        gamma=0.1,
+        warmup_factor=1.0 / 3,
+        warmup_iters=500,
+        warmup_method="linear",
+        last_epoch=-1,
     ):
         if not list(milestones) == sorted(milestones):
             raise ValueError(
@@ -29,10 +30,7 @@ class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
             )
 
         if warmup_method not in ("constant", "linear"):
-            raise ValueError(
-                "Only 'constant' or 'linear' warmup_method accepted"
-                "got {}".format(warmup_method)
-            )
+            raise ValueError("Only 'constant' or 'linear' warmup_method accepted" "got {}".format(warmup_method))
         self.milestones = milestones
         self.gamma = gamma
         self.warmup_factor = warmup_factor
@@ -48,9 +46,4 @@ class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
             elif self.warmup_method == "linear":
                 alpha = self.last_epoch / self.warmup_iters
                 warmup_factor = self.warmup_factor * (1 - alpha) + alpha
-        return [
-            base_lr
-            * warmup_factor
-            * self.gamma ** bisect_right(self.milestones, self.last_epoch)
-            for base_lr in self.base_lrs
-        ]
+        return [base_lr * warmup_factor * self.gamma ** bisect_right(self.milestones, self.last_epoch) for base_lr in self.base_lrs]
