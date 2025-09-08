@@ -35,26 +35,29 @@ class CenterLoss(nn.Module):
         assert x.size(0) == labels.size(0), "features.size(0) is not equal to labels.size(0)"
 
         batch_size = x.size(0)
-        distmat = torch.pow(x, 2).sum(dim=1, keepdim=True).expand(batch_size, self.num_classes) + \
-                  torch.pow(self.centers, 2).sum(dim=1, keepdim=True).expand(self.num_classes, batch_size).t()
+        distmat = (
+            torch.pow(x, 2).sum(dim=1, keepdim=True).expand(batch_size, self.num_classes)
+            + torch.pow(self.centers, 2).sum(dim=1, keepdim=True).expand(self.num_classes, batch_size).t()
+        )
         distmat.addmm_(1, -2, x, self.centers.t())
 
         classes = torch.arange(self.num_classes).long()
-        if self.use_gpu: classes = classes.cuda()
+        if self.use_gpu:
+            classes = classes.cuda()
         labels = labels.unsqueeze(1).expand(batch_size, self.num_classes)
         mask = labels.eq(classes.expand(batch_size, self.num_classes))
 
         dist = []
         for i in range(batch_size):
             value = distmat[i][mask[i]]
-            value = value.clamp(min=1e-12, max=1e+12)  # for numerical stability
+            value = value.clamp(min=1e-12, max=1e12)  # for numerical stability
             dist.append(value)
         dist = torch.cat(dist)
         loss = dist.mean()
         return loss
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     use_gpu = False
     center_loss = CenterLoss(use_gpu=use_gpu)
     features = torch.rand(16, 2048)
