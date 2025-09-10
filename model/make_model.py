@@ -1,29 +1,10 @@
 import torch
 import torch.nn as nn
+from timm.models.layers import trunc_normal_
+
 from .backbones.resnet import ResNet, Bottleneck
-from .backbones.vit_transoss import vit_base_patch16_224_TransOSS
-from .backbones.swin_transoss import swin_base_patch4_window7_224_TransReID, swin_base_patch4_window12_384_TransReID
+from .backbones.vit_transoss import vit_base_patch16_224_TransOSS, PatchEmbed_overlap, WHPatchEmbedding
 from loss.metric_learning import Arcface, Cosface, AMSoftmax, CircleLoss
-
-
-def shuffle_unit(features, shift, group, begin=1):
-
-    batchsize = features.size(0)
-    dim = features.size(-1)
-    # Shift Operation
-    feature_random = torch.cat([features[:, begin - 1 + shift :], features[:, begin : begin - 1 + shift]], dim=1)
-    x = feature_random
-    # Patch Shuffle Operation
-    try:
-        x = x.view(batchsize, group, -1, dim)
-    except:
-        x = torch.cat([x, x[:, -2:-1, :]], dim=1)
-        x = x.view(batchsize, group, -1, dim)
-
-    x = torch.transpose(x, 1, 2).contiguous()
-    x = x.view(batchsize, -1, dim)
-
-    return x
 
 
 def weights_init_kaiming(m):
@@ -121,17 +102,12 @@ class Backbone(nn.Module):
 class build_transformer(nn.Module):
     def __init__(self, num_classes, camera_num, cfg, factory, logit_scale_init_value=2.6592):
         super(build_transformer, self).__init__()
-        last_stride = cfg.MODEL.LAST_STRIDE
         model_path = cfg.MODEL.PRETRAIN_PATH
-        model_name = cfg.MODEL.NAME
         pretrain_choice = cfg.MODEL.PRETRAIN_CHOICE
         self.cos_layer = cfg.MODEL.COS_LAYER
         self.neck = cfg.MODEL.NECK
         self.neck_feat = cfg.TEST.NECK_FEAT
-        if "swin" in cfg.MODEL.TRANSFORMER_TYPE:
-            self.in_planes = 1024  # Swin-Base的输出维度是1024
-        else:  # 默认为ViT
-            self.in_planes = 768
+        self.in_planes = 768
         self.model_type = cfg.MODEL.TRANSFORMER_TYPE
 
         print("using Transformer_type: {} as a backbone".format(cfg.MODEL.TRANSFORMER_TYPE))
@@ -140,31 +116,18 @@ class build_transformer(nn.Module):
             camera_num = camera_num
         else:
             camera_num = 0
-        if cfg.MODEL.TRANSFORMER_TYPE == "vit_base_patch16_224_TransOSS":
-            self.base = factory[cfg.MODEL.TRANSFORMER_TYPE](
-                img_size=cfg.INPUT.SIZE_TRAIN,
-                mie_coe=cfg.MODEL.MIE_COE,
-                camera=camera_num,
-                stride_size=cfg.MODEL.STRIDE_SIZE,
-                drop_path_rate=cfg.MODEL.DROP_PATH,
-                drop_rate=cfg.MODEL.DROP_OUT,
-                attn_drop_rate=cfg.MODEL.ATT_DROP_RATE,
-                sse=cfg.MODEL.SSE,
-            )
-        elif "swin" in cfg.MODEL.TRANSFORMER_TYPE:
-            # --- 在这里为Swin的创建添加mie_coe和sse参数 ---
-            self.base = factory[cfg.MODEL.TRANSFORMER_TYPE](
-                img_size=cfg.INPUT.SIZE_TRAIN,
-                camera=camera_num,
-                drop_path_rate=cfg.MODEL.DROP_PATH,
-                drop_rate=cfg.MODEL.DROP_OUT,
-                attn_drop_rate=cfg.MODEL.ATT_DROP_RATE,
-                mie_coe=cfg.MODEL.MIE_COE,  # 新增
-                sse=cfg.MODEL.SSE,
-            )  # 新增
-        else:
-            raise ValueError("Unsupported model type: {}".format(cfg.MODEL.TRANSFORMER_TYPE))
-        if pretrain_choice == "imagenet" and not cfg.TEST.EVAL:
+
+        self.base = factory[cfg.MODEL.TRANSFORMER_TYPE](
+            img_size=cfg.INPUT.SIZE_TRAIN,
+            mie_coe=cfg.MODEL.MIE_COE,
+            camera=camera_num,
+            stride_size=cfg.MODEL.STRIDE_SIZE,
+            drop_path_rate=cfg.MODEL.DROP_PATH,
+            drop_rate=cfg.MODEL.DROP_OUT,
+            attn_drop_rate=cfg.MODEL.ATT_DROP_RATE,
+            sse=cfg.MODEL.SSE,
+        )
+        if pretrain_choice == "imagenet":
             self.base.load_param(model_path)
             print("Loading pretrained model......from {}".format(model_path))
 
@@ -208,38 +171,33 @@ class build_transformer(nn.Module):
         if self.training:
             if self.train_pair:
                 b_s = global_feat.size(0)
-                # normalized features
                 opt_embeds = global_feat[0 : b_s // 2]
                 sar_embeds = global_feat[b_s // 2 :]
                 opt_embeds = opt_embeds / opt_embeds.norm(p=2, dim=-1, keepdim=True)
                 sar_embeds = sar_embeds / sar_embeds.norm(p=2, dim=-1, keepdim=True)
-
-                # cosine similarity as logits
                 logit_scale = self.logit_scale.exp()
                 logits_per_sar = torch.matmul(sar_embeds, opt_embeds.t()) * logit_scale
                 return logits_per_sar
-
             else:
                 feat = self.bottleneck(global_feat)
                 if self.ID_LOSS_TYPE in ("arcface", "cosface", "amsoftmax", "circle"):
                     cls_score = self.classifier(feat, label)
                 else:
                     cls_score = self.classifier(feat)
-
-                return cls_score, global_feat  # global feature for triplet loss
+                return cls_score, global_feat
         else:
             if self.neck_feat == "after":
                 feat = self.bottleneck(global_feat)
-                # print("Test with feature after BN")
                 return feat
             else:
-                # print("Test with feature before BN")
                 return global_feat
 
     def load_param(self, trained_path):
         param_dict = torch.load(trained_path)
+        if "state_dict" in param_dict:
+            param_dict = param_dict["state_dict"]
         for i in param_dict:
-            self.state_dict()[i.replace("module.", "")].copy_(param_dict[i])
+            self.state_dict()[i].copy_(param_dict[i])
         print("Loading pretrained model from {}".format(trained_path))
 
     def load_param_finetune(self, model_path):
@@ -251,16 +209,17 @@ class build_transformer(nn.Module):
 
 __factory_T_type = {
     "vit_base_patch16_224_TransOSS": vit_base_patch16_224_TransOSS,
-    "swin_base_patch4_window7_224_TransReID": swin_base_patch4_window7_224_TransReID,
-    "swin_base_patch4_window12_384": swin_base_patch4_window12_384_TransReID,
 }
 
 
 def make_model(cfg, num_class, camera_num):
     if cfg.MODEL.NAME == "transformer":
-        model = build_transformer(num_class, camera_num, cfg, __factory_T_type)
-        print("===========building transformer===========")
+        if "vit" in cfg.MODEL.TRANSFORMER_TYPE:
+            print(f"=========== Building ViT-TransOSS: {cfg.MODEL.TRANSFORMER_TYPE} ===========")
+            model = build_transformer(num_class, camera_num, cfg, __factory_T_type)
+        else:
+            raise ValueError(f"Unsupported Transformer type: {cfg.MODEL.TRANSFORMER_TYPE}")
     else:
         model = Backbone(num_class, cfg)
-        print("===========building ResNet===========")
+        print("=========== Building ResNet ===========")
     return model

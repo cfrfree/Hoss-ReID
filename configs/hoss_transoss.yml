@@ -1,16 +1,13 @@
 MODEL:
   PRETRAIN_CHOICE: 'imagenet'
-  PRETRAIN_PATH: "/home/chenfree2002/Python/checkpoints/swin_base_patch4_window7_224_22k.pth"
-  # PRETRAIN_PATH: "/home/share/chenfree/ReID/vit_b512_pre.pth"
+  PRETRAIN_PATH: "/home/share/chenfree/ReID/vit_b512_pre.pth"
   METRIC_LOSS_TYPE: 'triplet'
   IF_LABELSMOOTH: 'off'
   IF_WITH_CENTER: 'no'
   NAME: 'transformer'
   NO_MARGIN: True
   DEVICE_ID: ('0')
-  # TRANSFORMER_TYPE: 'vit_base_patch16_224_TransOSS'
-  TRANSFORMER_TYPE: 'swin_base_patch4_window7_224_TransReID'
-  # TRANSFORMER_TYPE: 'swin_base_patch4_window12_384'
+  TRANSFORMER_TYPE: 'vit_base_patch16_224_TransOSS'
   STRIDE_SIZE: [8,8]
   MIE: True
   MIE_COE: 3.0
@@ -18,8 +15,8 @@ MODEL:
   PAIR: False
 
 INPUT:
-  SIZE_TRAIN: [224, 224]
-  SIZE_TEST: [224, 224]
+  SIZE_TRAIN: [256, 128]
+  SIZE_TEST: [256, 128]
   PROB: 0.5 # random horizontal flip
   RE_PROB: 0.5 # random erasing
   PADDING: 10
@@ -50,11 +47,11 @@ SOLVER:
   BIAS_LR_FACTOR: 2
 
 TEST:
-  EVAL: False
+  EVAL: True
   IMS_PER_BATCH: 32
   RE_RANKING: False
-  WEIGHT: '/home/chenfree2002/Python/Hoss-ReID/logs/hoss_transoss_b32_stride8/transformer_200.pth'
+  WEIGHT: '/home/chenfree2002/Python/Hoss-ReID/logs/hoss_transoss_b32_stride8/transformer_50.pth'
   NECK_FEAT: 'before'
   FEAT_NORM: 'yes'
 
-OUTPUT_DIR: './logs/hoss_transoss_swin224_pretrain'
+OUTPUT_DIR: './logs/hoss_test'
