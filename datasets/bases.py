@@ -25,8 +25,31 @@ def read_image(img_path):
 
 
 def sar32bit2RGB(img):
+    """
+    Converts a single-channel SAR image (PIL Image) to a 3-channel RGB PIL Image.
+    If the input image is already 3-channel, it returns it directly.
+    """
+    # 检查图像模式
+    if img.mode == "RGB":
+        # 如果已经是RGB模式，直接返回
+        return img
+
+    # 如果是单通道（'L' for 8-bit, 'F' for 32-bit float, 'I' for 32-bit int）
+    # 将其转换为numpy数组进行处理
     nimg = np.array(img, dtype=np.float32)
-    nimg = nimg / nimg.max() * 255
+
+    # 检查numpy数组的维度
+    if nimg.ndim == 3 and nimg.shape[2] == 3:
+        # 即使模式不是RGB，但如果已经是3维数组，也可能是RGB
+        pil_img = Image.fromarray(nimg.astype(np.uint8))
+        return pil_img
+
+    # 执行原始的归一化和转换流程
+    # 确保除数不为0
+    max_val = nimg.max()
+    if max_val > 0:
+        nimg = nimg / max_val * 255
+
     nimg_8 = nimg.astype(np.uint8)
     cv_img = cv2.cvtColor(nimg_8, cv2.COLOR_GRAY2RGB)
     pil_img = Image.fromarray(cv_img)
