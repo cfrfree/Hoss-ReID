@@ -8,7 +8,7 @@ MODEL:
   NO_MARGIN: True
   DEVICE_ID: ('0')
   TRANSFORMER_TYPE: 'vit_base_patch16_224_TransOSS'
-  STRIDE_SIZE: [8,8]
+  STRIDE_SIZE: [16,16]
   MIE: True
   MIE_COE: 3.0
   SSE: True
@@ -48,9 +48,9 @@ SOLVER:
 
 TEST:
   EVAL: True
-  IMS_PER_BATCH: 32
+  IMS_PER_BATCH: 64
   RE_RANKING: False
-  WEIGHT: '/home/chenfree2002/Python/Hoss-ReID/logs/hoss_transoss_b32_stride8/transformer_50.pth'
+  WEIGHT: "/home/chenfree2002/Python/Hoss-ReID/logs/hoss_transoss_b32/transformer_200.pth"
   NECK_FEAT: 'before'
   FEAT_NORM: 'yes'
 

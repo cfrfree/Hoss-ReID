@@ -193,11 +193,26 @@ class build_transformer(nn.Module):
                 return global_feat
 
     def load_param(self, trained_path):
-        param_dict = torch.load(trained_path)
+        """
+        加载权重的鲁棒版本，能自动处理 'module.' 前缀。
+        """
+        param_dict = torch.load(trained_path, map_location="cpu")
         if "state_dict" in param_dict:
             param_dict = param_dict["state_dict"]
-        for i in param_dict:
-            self.state_dict()[i].copy_(param_dict[i])
+
+        # 创建一个新的 state_dict 来存储处理过的键
+        new_state_dict = {}
+        for k, v in param_dict.items():
+            if k.startswith("module."):
+                # 去掉 'module.' 前缀
+                name = k[7:]
+            else:
+                name = k
+            new_state_dict[name] = v
+
+        # 使用 load_state_dict 加载，strict=False 会忽略不匹配的键
+        # 比如，如果权重文件里有 logit_scale 但当前模型没有，它也不会报错
+        self.load_state_dict(new_state_dict, strict=False)
         print("Loading pretrained model from {}".format(trained_path))
 
     def load_param_finetune(self, model_path):

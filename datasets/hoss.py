@@ -9,7 +9,7 @@ class HOSS(BaseImageDataset):
     HOSS dataset
     """
 
-    dataset_dir = "HOSS/subset/O2S"
+    dataset_dir = "HOSS/"
 
     def __init__(self, root="", verbose=True, pid_begin=0, **kwargs):
         super(HOSS, self).__init__()

@@ -1,7 +1,6 @@
 import argparse
 import xml.etree.ElementTree as ET
 from sklearn.metrics import accuracy_score, f1_score
-import pandas as pd
 
 
 def parse_xml(xml_file):
@@ -97,8 +96,11 @@ def evaluate(predicted_xml, ground_truth_xml):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="评测分类结果XML文件")
-    parser.add_argument("predicted_xml", default="result.xml", help="你的模型生成的XML结果文件路径 (例如: result.xml)")
-    parser.add_argument("ground_truth_xml", default="/home/share/chenfree/ReID/Aircraft5/annotations.xml", help="包含正确标签的XML文件路径")
+    parser.add_argument(
+        "--predicted_xml",
+        default="result.xml",
+    )
+    parser.add_argument("--ground_truth_xml", default="/home/share/chenfree/ReID/Aircraft/annotations.xml")
 
     args = parser.parse_args()
 

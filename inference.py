@@ -19,7 +19,7 @@ def main():
     parser.add_argument("--config_file", default="configs/hoss_transoss.yml", help="path to config file")
     parser.add_argument("--input_dir", required=True, help="Path to the test data directory (e.g., '赛道4测试数据/')")
     parser.add_argument("--output_path", required=True, help="Path to save the output result.xml file")
-    parser.add_argument("--top_k", type=int, default=5, help="Value of K for KNN majority voting")
+    parser.add_argument("--top_k", type=int, default=7, help="Value of K for KNN majority voting")
 
     # --- 新增 Rerank 开关 ---
     parser.add_argument("--rerank", action="store_true", help="Enable k-reciprocal re-ranking to improve results")
