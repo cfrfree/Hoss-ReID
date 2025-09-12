@@ -12,14 +12,16 @@ import torchvision.transforms as T
 
 from utils.reranking import re_ranking
 from datasets.hjj import OpticalGalleryDataset, SarQueryDataset
+import time  # 导入 time 模块
 
 
 def main():
+    start_time = time.time()
     parser = argparse.ArgumentParser(description="Custom Inference Task with KNN and Re-ranking")
     parser.add_argument("--config_file", default="configs/hoss_transoss.yml", help="path to config file")
     parser.add_argument("--input_dir", required=True, help="Path to the test data directory (e.g., '赛道4测试数据/')")
     parser.add_argument("--output_path", required=True, help="Path to save the output result.xml file")
-    parser.add_argument("--top_k", type=int, default=7, help="Value of K for KNN majority voting")
+    parser.add_argument("--top_k", type=int, default=1, help="Value of K for KNN majority voting")
 
     # --- 新增 Rerank 开关 ---
     parser.add_argument("--rerank", action="store_true", help="Enable k-reciprocal re-ranking to improve results")
@@ -141,22 +143,11 @@ def main():
 
     print(f"Result XML saved to {result_file_path}")
 
-    # --- 7. 可视化 (可选) ---
-    # ... (可视化部分可以保持不变，但矩阵的含义变成了距离) ...
-    # 我们将距离转换为相似度 (e.g., using exp(-dist)) 以便可视化
-    # print("Generating distance matrix visualization...")
-    # sim_matrix_np = np.exp(-dist_matrix.cpu().numpy())  # 将距离转换为相似度
-    # plt.figure(figsize=(20, 15))
-    # sns.heatmap(sim_matrix_np, xticklabels=all_gallery_labels, yticklabels=all_query_filenames, cmap="viridis", annot=False)
-    # plt.title("SAR (Query) vs Optical (Gallery) Distance Matrix", fontsize=20)
-    # plt.xlabel("Optical Gallery Images (by Target Name)", fontsize=15)
-    # plt.ylabel("SAR Query Images (by Filename)", fontsize=15)
-    # plt.rcParams["font.sans-serif"] = ["SimHei"]
-    # plt.rcParams["axes.unicode_minus"] = False
-    # plt.tight_layout()
-    # heatmap_path = os.path.join(os.path.dirname(result_file_path), "distance_matrix.png")
-    # plt.savefig(heatmap_path, dpi=300)
-    # print(f"Distance matrix heatmap saved to {heatmap_path}")
+    end_time = time.time()
+    total_time = end_time - start_time
+    print("\n==============================================")
+    print(f"程序总运行时间: {total_time:.2f} 秒")
+    print("==============================================")
 
 
 if __name__ == "__main__":
