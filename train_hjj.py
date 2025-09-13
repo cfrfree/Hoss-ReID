@@ -6,6 +6,7 @@ import numpy as np
 import logging
 import sys
 import xml.etree.ElementTree as ET
+import torch.distributed as dist  # Import the distributed package
 
 from config import cfg
 from datasets.hjj import CustomReIDDataset, InferenceGalleryDataset, InferenceQueryDataset
@@ -19,9 +20,10 @@ import torchvision.transforms as T
 from timm.data.random_erasing import RandomErasing
 from torch.utils.data import DataLoader
 from datasets.sampler import RandomIdentitySampler
-from utils.logger import setup_logger
 
-# **关键修改：导入新的评估器**
+# **1. Import the DDP (Distributed Data Parallel) Sampler**
+from datasets.sampler_ddp import RandomIdentitySampler_DDP
+from utils.logger import setup_logger
 from utils.custom_metrics import CustomClassificationEvaluator
 
 
@@ -53,7 +55,6 @@ def val_collate_fn(batch):
 
 
 def parse_xml_for_pids(xml_file):
-    """解析XML文件以创建文件名到目标类别的映射。"""
     try:
         tree = ET.parse(xml_file)
         root = tree.getroot()
@@ -66,6 +67,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Custom ReID Task Training with Periodic Validation")
     parser.add_argument("--config_file", default="configs/hjj.yml", help="path to config file")
     parser.add_argument("opts", help="Modify config options using the command-line", default=None, nargs=argparse.REMAINDER)
+    # This argument is automatically provided by torch.distributed.launch
     parser.add_argument("--local-rank", default=0, type=int)
     args = parser.parse_args()
 
@@ -76,17 +78,20 @@ if __name__ == "__main__":
 
     set_seed(1234)
 
+    # **2. Initialize the distributed process group**
+    if cfg.MODEL.DIST_TRAIN:
+        torch.cuda.set_device(args.local_rank)
+        dist.init_process_group(backend="nccl", init_method="env://")
+
     output_dir = cfg.OUTPUT_DIR
-    if output_dir and not os.path.exists(output_dir):
+    # Only the main process should create the directory
+    if args.local_rank == 0 and output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
     logger = setup_logger("transreid", output_dir, if_train=True)
+    logger.info("Using {} GPUs".format(dist.get_world_size()) if cfg.MODEL.DIST_TRAIN else "Using single GPU")
     logger.info(args)
     logger.info("Running with config:\n{}".format(cfg))
-
-    if cfg.MODEL.DIST_TRAIN:
-        torch.cuda.set_device(args.local_rank)
-        torch.distributed.init_process_group(backend="nccl", init_method="env://")
 
     os.environ["CUDA_VISIBLE_DEVICES"] = cfg.MODEL.DEVICE_ID
 
@@ -107,17 +112,29 @@ if __name__ == "__main__":
     num_classes = custom_dataset.num_train_pids
     train_set = ImageDataset(custom_dataset.train, train_transforms)
 
+    # **3. Conditionally create the correct sampler**
+    if cfg.MODEL.DIST_TRAIN:
+        print("Using Distributed Sampler")
+        sampler = RandomIdentitySampler_DDP(custom_dataset.train, cfg.SOLVER.IMS_PER_BATCH, cfg.DATALOADER.NUM_INSTANCE)
+    else:
+        print("Using Single-GPU Sampler")
+        sampler = RandomIdentitySampler(custom_dataset.train, cfg.SOLVER.IMS_PER_BATCH, cfg.DATALOADER.NUM_INSTANCE)
+
     train_loader = DataLoader(
         train_set,
         batch_size=cfg.SOLVER.IMS_PER_BATCH,
-        sampler=RandomIdentitySampler(custom_dataset.train, cfg.SOLVER.IMS_PER_BATCH, cfg.DATALOADER.NUM_INSTANCE),
+        sampler=sampler,  # Use the selected sampler
         num_workers=cfg.DATALOADER.NUM_WORKERS,
         collate_fn=train_collate_fn,
+        # In DDP, the sampler handles shuffling, so shuffle must be False.
+        # It's also False by default when a sampler is provided.
     )
 
+    # --- 验证数据加载器 (不变) ---
     val_loader = None
     num_query = 0
-    if cfg.DATASETS.VAL_PATH and cfg.DATASETS.GT_XML_PATH:
+    # Validation is only performed on the main process (rank 0)
+    if args.local_rank == 0 and cfg.DATASETS.VAL_PATH and cfg.DATASETS.GT_XML_PATH:
         val_transforms = T.Compose([T.Resize(cfg.INPUT.SIZE_TEST), T.ToTensor(), T.Normalize(mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD)])
         gt_map = parse_xml_for_pids(cfg.DATASETS.GT_XML_PATH)
         if gt_map is None:
@@ -146,19 +163,18 @@ if __name__ == "__main__":
                 val_loader = None
                 num_query = 0
 
-    # --- 初始化模型、损失、优化器等 (不变) ---
+    # --- 初始化模型、损失、优化器等 ---
     model = make_model(cfg, num_class=num_classes, camera_num=2)
     loss_func, center_criterion = make_loss(cfg, num_classes=num_classes)
     optimizer, optimizer_center = make_optimizer(cfg, model, center_criterion)
     scheduler = create_scheduler(cfg, optimizer)
 
-    # **关键修改：实例化新的评估器**
     evaluator = CustomClassificationEvaluator(
-        num_query=num_query, gt_xml_path=cfg.DATASETS.GT_XML_PATH, top_k=cfg.TEST.TOP_K, feat_norm=cfg.TEST.FEAT_NORM  # 从配置中读取K值
+        num_query=num_query, gt_xml_path=cfg.DATASETS.GT_XML_PATH, top_k=cfg.TEST.TOP_K, feat_norm=cfg.TEST.FEAT_NORM
     )
 
     # --- 开始训练 ---
-    logger.info("Starting ReID training with periodic validation...")
+    logger.info("Starting ReID training...")
     do_train(
         cfg=cfg,
         model=model,
@@ -171,6 +187,6 @@ if __name__ == "__main__":
         loss_fn=loss_func,
         num_query=num_query,
         local_rank=args.local_rank,
-        evaluator=evaluator,  # **关键修改：将评估器实例传入**
+        evaluator=evaluator,
     )
     logger.info("ReID training finished.")

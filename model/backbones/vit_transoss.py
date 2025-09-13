@@ -104,7 +104,6 @@ class Attention(nn.Module):
 
 
 class Block(nn.Module):
-
     def __init__(
         self,
         dim,

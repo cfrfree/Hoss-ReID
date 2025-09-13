@@ -30,26 +30,26 @@ DATASETS:
 
 DATALOADER:
   SAMPLER: 'softmax_triplet'
-  NUM_INSTANCE: 4  # **关键：每个ID在一个批次中采样4个实例**
+  NUM_INSTANCE: 8  
   NUM_WORKERS: 8
 
 SOLVER:
   OPTIMIZER_NAME: 'SGD' # AdamW通常在Transformer上效果更好
-  MAX_EPOCHS: 10
+  MAX_EPOCHS: 30
   BASE_LR: 0.0005
-  IMS_PER_BATCH: 8 # **关键：总批次大小**
+  IMS_PER_BATCH: 64 # **关键：总批次大小**
   WARMUP_METHOD: 'linear'
-  WARMUP_EPOCHS: 2
-  CHECKPOINT_PERIOD: 2
+  WARMUP_EPOCHS: 5
+  CHECKPOINT_PERIOD: 5
   LOG_PERIOD: 50
-  EVAL_PERIOD: 2 # 每10个epoch验证一次
+  EVAL_PERIOD: 5 # 每10个epoch验证一次
   WEIGHT_DECAY:  1e-4
   MARGIN: 0.3 # Triplet Loss 的 margin
 
 TEST:
   IMS_PER_BATCH: 64
-  RE_RANKING: False
-  WEIGHT: "/home/chenfree2002/Python/Hoss-ReID/logs/hjj_vit_pre/transformer_10.pth" # 训练完成后生成的权重路径
+  RE_RANKING: True
+  WEIGHT: /home/chenfree2002/Python/Hoss-ReID/logs/hjj_reid_new/transformer_30.pth # 训练完成后生成的权重路径
   NECK_FEAT: 'before'
   FEAT_NORM: 'yes'
   TOP_K: 5

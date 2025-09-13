@@ -21,9 +21,7 @@ def main():
     start_time = time.time()
     parser = argparse.ArgumentParser(description="Custom Inference Script for Test Set")
     parser.add_argument("--config_file", default="configs/hjj.yml", help="path to config file for the task")
-    parser.add_argument(
-        "--test_dir", default=None, help="Path to the test data directory (e.g., '赛道4测试数据/'). Overrides the path in the config file."
-    )
+    parser.add_argument("--test_dir", default=None, help="Path to the test data directory (e.g., '赛道4测试数据/'). Overrides the path in the config file.")
     parser.add_argument("--output_path", required=True, help="Path to save the final result.xml file")
     parser.add_argument("opts", help="Modify config options using the command-line", default=None, nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -34,7 +32,7 @@ def main():
     cfg.freeze()
 
     # --- 1. 模型加载 ---
-    print("Building model for weight loading...")
+    # print("Building model for weight loading...")
 
     # 我们知道训练好的模型是基于3个类别的。
     # 因此，我们必须用 num_class=3 来初始化模型，以确保分类层的形状匹配，从而成功加载权重。
@@ -42,16 +40,16 @@ def main():
     NUM_CLASSES_IN_CHECKPOINT = 3
     model = make_model(cfg, num_class=NUM_CLASSES_IN_CHECKPOINT, camera_num=2)
 
-    print(f"Loading weights from: {cfg.TEST.WEIGHT}")
+    # print(f"Loading weights from: {cfg.TEST.WEIGHT}")
     # 此时，由于模型形状与权重文件完全匹配，加载会成功
     model.load_param(cfg.TEST.WEIGHT)
-    print("Model weights loaded successfully.")
+    # print("Model weights loaded successfully.")
 
     # 加载权重后，我们就不再需要分类相关的层了。
     # 将它们替换为 Identity 层，使模型成为一个纯粹的特征提取器。
     model.classifier = nn.Identity()
     model.bottleneck = nn.Identity()  # 同样移除 bottleneck 层
-    print("Classifier and bottleneck layers removed. Model is now in feature extraction mode.")
+    # print("Classifier and bottleneck layers removed. Model is now in feature extraction mode.")
 
     device = torch.device(cfg.MODEL.DEVICE)
     model.to(device)
@@ -78,18 +76,17 @@ def main():
 
     all_gallery_feats = []
     all_gallery_labels = []
-    print(f"Extracting features from optical gallery at: {gallery_path}")
+    # print(f"Extracting features from optical gallery at: {gallery_path}")
     with torch.no_grad():
         for imgs, target_names, img_sizes in gallery_loader:
             imgs = imgs.to(device)
             img_wh = torch.stack(img_sizes, dim=1).float().to(device)
-
             # =======================================================
             feats = model(imgs, cam_label=torch.zeros(imgs.size(0), dtype=torch.long).to(device), img_wh=img_wh)
             all_gallery_feats.append(feats)
             all_gallery_labels.extend(target_names)
     all_gallery_feats = torch.cat(all_gallery_feats, dim=0)
-    print(f"Extracted {all_gallery_feats.shape[0]} features from the gallery.")
+    # print(f"Extracted {all_gallery_feats.shape[0]} features from the gallery.")
 
     # 提取SAR待查询图像 (Query) 的特征
     query_path = os.path.join(test_path, "Sar文件夹")
@@ -98,18 +95,17 @@ def main():
 
     all_query_feats = []
     all_query_filenames = []
-    print(f"Extracting features from SAR queries at: {query_path}")
+    # print(f"Extracting features from SAR queries at: {query_path}")
     with torch.no_grad():
         for imgs, filenames, img_sizes in query_loader:
             imgs = imgs.to(device)
             img_wh = torch.stack(img_sizes, dim=1).float().to(device)
-
             # =======================================================
             query_feats = model(imgs, cam_label=torch.ones(imgs.size(0), dtype=torch.long).to(device), img_wh=img_wh)
             all_query_feats.append(query_feats)
             all_query_filenames.extend(filenames)
     all_query_feats = torch.cat(all_query_feats, dim=0)
-    print(f"Extracted {all_query_feats.shape[0]} features from the queries.")
+    # print(f"Extracted {all_query_feats.shape[0]} features from the queries.")
 
     # --- 3. 距离计算和分类 ---
     if cfg.TEST.RE_RANKING:
