@@ -1,12 +1,6 @@
 from yacs.config import CfgNode as CN
 
 # -----------------------------------------------------------------------------
-# Convention about Training / Test specific parameters
-# -----------------------------------------------------------------------------
-# Whenever an argument can be either used for training or for testing, the
-# corresponding name will be post-fixed by a _TRAIN for a training parameter,
-
-# -----------------------------------------------------------------------------
 # Config definition
 # -----------------------------------------------------------------------------
 
@@ -64,7 +58,6 @@ _C.MODEL.SWIN.EMBED_DIM = 96
 _C.MODEL.SWIN.DEPTHS = [2, 2, 6, 2]
 _C.MODEL.SWIN.NUM_HEADS = [3, 6, 12, 24]
 
-
 # Modality Information Embeddings
 _C.MODEL.MIE_COE = 3.0
 _C.MODEL.MIE = False
@@ -103,6 +96,16 @@ _C.DATASETS.NAMES = "HOSS"
 # Root directory where datasets should be used (and downloaded if not found)
 _C.DATASETS.ROOT_DIR = "./data"
 
+# ==================== NEW KEYS ADDED HERE ====================
+# Path to custom training data
+_C.DATASETS.TRAIN_PATH = ""
+# Path to custom validation data
+_C.DATASETS.VAL_PATH = ""
+# Path to custom test data
+_C.DATASETS.TEST_PATH = ""
+# Path to ground truth XML for validation
+_C.DATASETS.GT_XML_PATH = ""
+# =============================================================
 
 # -----------------------------------------------------------------------------
 # DataLoader
@@ -184,7 +187,7 @@ _C.TEST.WEIGHT = ""
 _C.TEST.NECK_FEAT = "after"
 # Whether feature is nomalized before test, if yes, it is equivalent to cosine distance
 _C.TEST.FEAT_NORM = "yes"
-
+_C.TEST.TOP_K = 5
 # Name for saving the distmat after testing.
 _C.TEST.DIST_MAT = "dist_mat.npy"
 # Whether calculate the eval score option: 'True', 'False'

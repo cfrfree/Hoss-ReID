@@ -412,31 +412,40 @@ class TransOSS(nn.Module):
             param_dict = param_dict["model"]
         if "state_dict" in param_dict:
             param_dict = param_dict["state_dict"]
+
+        # 创建一个新的 state_dict 来存储处理过的键
+        new_state_dict = {}
         for k, v in param_dict.items():
-            if "head" in k or "dist" in k:
+            # 统一去除 'module.' 前缀
+            if k.startswith("module."):
+                k = k[7:]
+            # 去除 'base.' 前缀
+            if k.startswith("base."):
+                k = k[5:]
+            new_state_dict[k] = v
+
+        # 使用新的 state_dict 进行加载
+        for k, v in new_state_dict.items():
+            if k not in self.state_dict():
+                print(f"Skipping loading parameter {k} as it is not found in the model.")
                 continue
-            if "patch_embed.proj.weight" in k and len(v.shape) < 4:
-                # For old models that I trained prior to conv based patchification
-                O, I, H, W = self.patch_embed.proj.weight.shape
-                v = v.reshape(O, -1, H, W)
-            elif k == "pos_embed" and v.shape != self.pos_embed.shape:
-                # To resize pos embedding when using model at different size from pretrained weights
-                if "distilled" in model_path:
-                    print("distill need to choose right cls token in the pth")
-                    v = torch.cat([v[:, 0:1], v[:, 2:]], dim=1)
+
+            if k == "pos_embed" and v.shape != self.pos_embed.shape:
+                print(f"Resizing position embedding for {k}...")
                 v = resize_pos_embed(v, self.pos_embed, self.patch_embed.num_y, self.patch_embed.num_x)
+
             try:
                 self.state_dict()[k].copy_(v)
-            except:
-                print("===========================ERROR=========================")
-                if "mie_embed" in k:
-                    print(f"{k} not in the model")
-                    continue
-                print("shape do not match in k :{}: param_dict{} vs self.state_dict(){}".format(k, v.shape, self.state_dict()[k].shape))
-        if "patch_embed_SAR.proj.bias" not in param_dict.keys():
-            print("patch_embed_SAR not in the pth")
+            except Exception as e:
+                print(f"Error loading parameter {k}: {e}")
+
+        # 确保SAR的patch_embed层也被初始化
+        if "patch_embed_SAR.proj.bias" not in new_state_dict.keys():
+            print("patch_embed_SAR not in the pth, copying from patch_embed.")
             self.state_dict()["patch_embed_SAR.proj.bias"].copy_(self.state_dict()["patch_embed.proj.bias"])
             self.state_dict()["patch_embed_SAR.proj.weight"].copy_(self.state_dict()["patch_embed.proj.weight"])
+
+    # =======================================================
 
 
 def resize_pos_embed(posemb, posemb_new, hight, width):

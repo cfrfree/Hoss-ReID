@@ -2,17 +2,16 @@ MODEL:
   PRETRAIN_CHOICE: 'imagenet'
   PRETRAIN_PATH: "/home/share/chenfree/ReID/vit_b512_pre.pth"
   METRIC_LOSS_TYPE: 'triplet'
-  IF_LABELSMOOTH: 'off'
-  IF_WITH_CENTER: 'no'
+  IF_LABELSMOOTH: 'on'
   NAME: 'transformer'
-  NO_MARGIN: True
+  NO_MARGIN: False # 使用带margin的Triplet Loss
   DEVICE_ID: ('0')
   TRANSFORMER_TYPE: 'vit_base_patch16_224_TransOSS'
-  STRIDE_SIZE: [16,16]
+  STRIDE_SIZE: [16, 16]
   MIE: True
   MIE_COE: 3.0
   SSE: True
-  PAIR: False
+  PAIR: False    # **关键：关闭成对训练模式**
 
 INPUT:
   SIZE_TRAIN: [256, 128]
@@ -24,34 +23,35 @@ INPUT:
   PIXEL_STD: [0.229, 0.224, 0.225]
 
 DATASETS:
-  NAMES: ('HOSS')
-  ROOT_DIR: ('/home/share/chenfree/ReID/')
+  TRAIN_PATH: '/home/share/chenfree/ReID/Aircraft_new/train_set/'  # 请修改为您的训练数据路径
+  VAL_PATH: '/home/share/chenfree/ReID/Aircraft_new/val_set/' # 请修改为您的验证数据路径
+  TEST_PATH: '/home/share/chenfree/ReID/Aircraft_new/val_set/' # 请修改为您的测试数据路径
+  GT_XML_PATH: "/home/share/chenfree/ReID/Aircraft_new/val_set/val.xml" # 请修改为您验证集的真值XML路径
 
 DATALOADER:
   SAMPLER: 'softmax_triplet'
-  NUM_INSTANCE: 4
-  NUM_WORKERS: 4
+  NUM_INSTANCE: 4  # **关键：每个ID在一个批次中采样4个实例**
+  NUM_WORKERS: 8
 
 SOLVER:
-  OPTIMIZER_NAME: 'SGD'
-  MAX_EPOCHS: 200
+  OPTIMIZER_NAME: 'SGD' # AdamW通常在Transformer上效果更好
+  MAX_EPOCHS: 10
   BASE_LR: 0.0005
-  IMS_PER_BATCH: 32
+  IMS_PER_BATCH: 8 # **关键：总批次大小**
   WARMUP_METHOD: 'linear'
-  LARGE_FC_LR: False
-  CHECKPOINT_PERIOD: 50
+  WARMUP_EPOCHS: 2
+  CHECKPOINT_PERIOD: 2
   LOG_PERIOD: 50
-  EVAL_PERIOD: 10
+  EVAL_PERIOD: 2 # 每10个epoch验证一次
   WEIGHT_DECAY:  1e-4
-  WEIGHT_DECAY_BIAS: 1e-4
-  BIAS_LR_FACTOR: 2
+  MARGIN: 0.3 # Triplet Loss 的 margin
 
 TEST:
-  EVAL: True
   IMS_PER_BATCH: 64
   RE_RANKING: False
-  WEIGHT: "/home/share/chenfree/ReID/vit_b512_pre.pth"
+  WEIGHT: "/home/chenfree2002/Python/Hoss-ReID/logs/hjj_vit_pre/transformer_10.pth" # 训练完成后生成的权重路径
   NECK_FEAT: 'before'
   FEAT_NORM: 'yes'
+  TOP_K: 5
 
-OUTPUT_DIR: './logs/hjj_test'
+OUTPUT_DIR: './logs/hjj_reid_new'

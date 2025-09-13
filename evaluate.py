@@ -100,7 +100,7 @@ if __name__ == "__main__":
         "--predicted_xml",
         default="result.xml",
     )
-    parser.add_argument("--ground_truth_xml", default="/home/share/chenfree/ReID/Aircraft/annotations.xml")
+    parser.add_argument("--ground_truth_xml", default="/home/share/chenfree/ReID/Aircraft_new/val_set/val.xml")
 
     args = parser.parse_args()
 
