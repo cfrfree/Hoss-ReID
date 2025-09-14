@@ -30,19 +30,19 @@ DATASETS:
 
 DATALOADER:
   SAMPLER: 'softmax_triplet'
-  NUM_INSTANCE: 8  
+  NUM_INSTANCE: 4  
   NUM_WORKERS: 8
 
 SOLVER:
   OPTIMIZER_NAME: 'SGD' # AdamW通常在Transformer上效果更好
-  MAX_EPOCHS: 30
+  MAX_EPOCHS: 60
   BASE_LR: 0.0005
-  IMS_PER_BATCH: 64 # **关键：总批次大小**
+  IMS_PER_BATCH: 32 # **关键：总批次大小**
   WARMUP_METHOD: 'linear'
   WARMUP_EPOCHS: 5
-  CHECKPOINT_PERIOD: 5
+  CHECKPOINT_PERIOD: 10
   LOG_PERIOD: 50
-  EVAL_PERIOD: 5 # 每10个epoch验证一次
+  EVAL_PERIOD: 10 # 每10个epoch验证一次
   WEIGHT_DECAY:  1e-4
   MARGIN: 0.3 # Triplet Loss 的 margin
 

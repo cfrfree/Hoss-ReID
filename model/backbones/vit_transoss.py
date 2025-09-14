@@ -208,7 +208,7 @@ class PatchEmbed_overlap(nn.Module):
         stride_size_tuple = to_2tuple(stride_size)
         self.num_x = (img_size[1] - patch_size[1]) // stride_size_tuple[1] + 1
         self.num_y = (img_size[0] - patch_size[0]) // stride_size_tuple[0] + 1
-        print("using stride: {}, and patch number is num_y{} * num_x{}".format(stride_size, self.num_y, self.num_x))
+        # print("using stride: {}, and patch number is num_y{} * num_x{}".format(stride_size, self.num_y, self.num_x))
         num_patches = self.num_x * self.num_y
         self.img_size = img_size
         self.patch_size = patch_size
@@ -303,9 +303,9 @@ class TransOSS(nn.Module):
             self.mie_embed = nn.Parameter(torch.zeros(camera, 1, embed_dim))
             trunc_normal_(self.mie_embed, std=0.02)
 
-        print("using drop_out rate is : {}".format(drop_rate))
-        print("using attn_drop_out rate is : {}".format(attn_drop_rate))
-        print("using drop_path rate is : {}".format(drop_path_rate))
+        # print("using drop_out rate is : {}".format(drop_rate))
+        # print("using attn_drop_out rate is : {}".format(attn_drop_rate))
+        # print("using drop_path rate is : {}".format(drop_path_rate))
 
         self.pos_drop = nn.Dropout(p=drop_rate)
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule

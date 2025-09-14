@@ -230,11 +230,11 @@ __factory_T_type = {
 def make_model(cfg, num_class, camera_num):
     if cfg.MODEL.NAME == "transformer":
         if "vit" in cfg.MODEL.TRANSFORMER_TYPE:
-            print(f"=========== Building ViT-TransOSS: {cfg.MODEL.TRANSFORMER_TYPE} ===========")
+            # print(f"=========== Building ViT-TransOSS: {cfg.MODEL.TRANSFORMER_TYPE} ===========")
             model = build_transformer(num_class, camera_num, cfg, __factory_T_type)
         else:
             raise ValueError(f"Unsupported Transformer type: {cfg.MODEL.TRANSFORMER_TYPE}")
     else:
         model = Backbone(num_class, cfg)
-        print("=========== Building ResNet ===========")
+        # print("=========== Building ResNet ===========")
     return model
