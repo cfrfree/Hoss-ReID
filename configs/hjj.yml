@@ -30,14 +30,14 @@ DATASETS:
 
 DATALOADER:
   SAMPLER: 'softmax_triplet'
-  NUM_INSTANCE: 4  
+  NUM_INSTANCE: 16  
   NUM_WORKERS: 8
 
 SOLVER:
   OPTIMIZER_NAME: 'SGD' # AdamW通常在Transformer上效果更好
   MAX_EPOCHS: 60
   BASE_LR: 0.0005
-  IMS_PER_BATCH: 32 # **关键：总批次大小**
+  IMS_PER_BATCH: 128 # **关键：总批次大小**
   WARMUP_METHOD: 'linear'
   WARMUP_EPOCHS: 5
   CHECKPOINT_PERIOD: 10
@@ -49,9 +49,9 @@ SOLVER:
 TEST:
   IMS_PER_BATCH: 64
   RE_RANKING: True
-  WEIGHT: '/home/chenfree2002/Python/Hoss-ReID/logs/hjj_reid_new/transformer_60.pth' # 训练完成后生成的权重路径
+  WEIGHT: '/home/chenfree2002/Python/Hoss-ReID/logs/hjj_reid_new/transformer_20.pth' # 训练完成后生成的权重路径
   NECK_FEAT: 'before'
   FEAT_NORM: 'yes'
   TOP_K: 5
 
-OUTPUT_DIR: './logs/hjj_reid_new'
+OUTPUT_DIR: './logs/hjj'
