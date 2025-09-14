@@ -49,7 +49,7 @@ SOLVER:
 TEST:
   IMS_PER_BATCH: 64
   RE_RANKING: True
-  WEIGHT: /home/chenfree2002/Python/Hoss-ReID/logs/hjj_reid_new/transformer_30.pth # 训练完成后生成的权重路径
+  WEIGHT: '/home/chenfree2002/Python/Hoss-ReID/logs/hjj_reid_new/transformer_60.pth' # 训练完成后生成的权重路径
   NECK_FEAT: 'before'
   FEAT_NORM: 'yes'
   TOP_K: 5

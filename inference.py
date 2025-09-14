@@ -8,7 +8,7 @@ from xml.dom import minidom
 import torch.nn as nn
 import torchvision.transforms as T
 from torch.utils.data import DataLoader
-
+from torch.cuda.amp import autocast
 from config import cfg
 from model import make_model
 
@@ -21,7 +21,9 @@ def main():
     start_time = time.time()
     parser = argparse.ArgumentParser(description="Custom Inference Script for Test Set")
     parser.add_argument("--config_file", default="configs/hjj.yml", help="path to config file for the task")
-    parser.add_argument("--test_dir", default=None, help="Path to the test data directory (e.g., '赛道4测试数据/'). Overrides the path in the config file.")
+    parser.add_argument(
+        "--test_dir", default=None, help="Path to the test data directory (e.g., '赛道4测试数据/'). Overrides the path in the config file."
+    )
     parser.add_argument("--output_path", required=True, help="Path to save the final result.xml file")
     parser.add_argument("opts", help="Modify config options using the command-line", default=None, nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -30,6 +32,8 @@ def main():
         cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.freeze()
+
+    torch.backends.cudnn.benchmark = True
 
     # --- 1. 模型加载 ---
     # print("Building model for weight loading...")
@@ -82,7 +86,8 @@ def main():
             imgs = imgs.to(device)
             img_wh = torch.stack(img_sizes, dim=1).float().to(device)
             # =======================================================
-            feats = model(imgs, cam_label=torch.zeros(imgs.size(0), dtype=torch.long).to(device), img_wh=img_wh)
+            with autocast():
+                feats = model(imgs, cam_label=torch.zeros(imgs.size(0), dtype=torch.long).to(device), img_wh=img_wh)
             all_gallery_feats.append(feats)
             all_gallery_labels.extend(target_names)
     all_gallery_feats = torch.cat(all_gallery_feats, dim=0)
@@ -101,7 +106,8 @@ def main():
             imgs = imgs.to(device)
             img_wh = torch.stack(img_sizes, dim=1).float().to(device)
             # =======================================================
-            query_feats = model(imgs, cam_label=torch.ones(imgs.size(0), dtype=torch.long).to(device), img_wh=img_wh)
+            with autocast():
+                query_feats = model(imgs, cam_label=torch.ones(imgs.size(0), dtype=torch.long).to(device), img_wh=img_wh)
             all_query_feats.append(query_feats)
             all_query_filenames.extend(filenames)
     all_query_feats = torch.cat(all_query_feats, dim=0)

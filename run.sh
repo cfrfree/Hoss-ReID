@@ -3,7 +3,7 @@
 #SBATCH --output hjj.out
 #SBATCH --nodes=1
 #SBATCH -c 20
-#SBATCH -p 3090 --gres=gpu:4 --nodelist=gpu19
+#SBATCH -p 3090 --gres=gpu:1 --nodelist=gpu19
 #SBATCH --time=100:00:00
 
 # Source global definitions
