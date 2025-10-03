@@ -1,6 +1,6 @@
 MODEL:
   PRETRAIN_CHOICE: 'imagenet'
-  PRETRAIN_PATH: "/home/chenfree2002/Python/checkpoints/swin_base_patch4_window7_224_22k.pth"
+  PRETRAIN_PATH: "/home/share/chenfree/ReID/vit_base_p16_224-4e355ebd.pth"
   NAME: 'transformer'
   NO_MARGIN: True
   DEVICE_ID: ('0')
@@ -33,7 +33,7 @@ SOLVER:
   OPTIMIZER_NAME: 'SGD'
   MAX_EPOCHS: 60
   BASE_LR: 0.003
-  IMS_PER_BATCH: 128
+  IMS_PER_BATCH: 256
   WARMUP_METHOD: 'linear'
   LARGE_FC_LR: False
   CHECKPOINT_PERIOD: 5
@@ -44,11 +44,10 @@ SOLVER:
   BIAS_LR_FACTOR: 2
 
 TEST:
-  EVAL: False
-  IMS_PER_BATCH: 64
+  IMS_PER_BATCH: 256
   RE_RANKING: False
   WEIGHT: ''
   NECK_FEAT: 'before'
   FEAT_NORM: 'yes'
 
-OUTPUT_DIR: './logs/pretrain_transoss'
+OUTPUT_DIR: './logs/pretrain_base_plus'

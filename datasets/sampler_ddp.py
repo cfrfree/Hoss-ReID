@@ -162,7 +162,7 @@ class RandomIdentitySampler_DDP(Sampler):
                 min(self.mini_batch_size * self.rank + self.mini_batch_size * (i + 1), total_num),
             )
             index_target.extend(index)
-        index_target_npy = np.array(index_target, dtype=np.int64)
+        index_target_npy = np.array(index_target)
         final_idxs = list(np.array(final_idxs)[index_target_npy])
         return final_idxs
 

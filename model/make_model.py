@@ -3,7 +3,7 @@ import torch.nn as nn
 from timm.models.layers import trunc_normal_
 
 from .backbones.resnet import ResNet, Bottleneck
-from .backbones.vit_transoss import vit_base_patch16_224_TransOSS, PatchEmbed_overlap, WHPatchEmbedding
+from .backbones.vit_transoss import vit_base_patch16_224_TransOSS, vit_large_patch16_224_TransOSS, PatchEmbed_overlap, WHPatchEmbedding
 from loss.metric_learning import Arcface, Cosface, AMSoftmax, CircleLoss
 
 
@@ -102,12 +102,14 @@ class Backbone(nn.Module):
 class build_transformer(nn.Module):
     def __init__(self, num_classes, camera_num, cfg, factory, logit_scale_init_value=2.6592):
         super(build_transformer, self).__init__()
+        last_stride = cfg.MODEL.LAST_STRIDE
         model_path = cfg.MODEL.PRETRAIN_PATH
+        model_name = cfg.MODEL.NAME
         pretrain_choice = cfg.MODEL.PRETRAIN_CHOICE
         self.cos_layer = cfg.MODEL.COS_LAYER
         self.neck = cfg.MODEL.NECK
         self.neck_feat = cfg.TEST.NECK_FEAT
-        self.in_planes = 768
+        # self.in_planes = 768
         self.model_type = cfg.MODEL.TRANSFORMER_TYPE
 
         print("using Transformer_type: {} as a backbone".format(cfg.MODEL.TRANSFORMER_TYPE))
@@ -116,17 +118,22 @@ class build_transformer(nn.Module):
             camera_num = camera_num
         else:
             camera_num = 0
+        if cfg.MODEL.TRANSFORMER_TYPE in ["vit_base_patch16_224_TransOSS", "vit_large_patch16_224_TransOSS"]:
+            self.base = factory[cfg.MODEL.TRANSFORMER_TYPE](
+                img_size=cfg.INPUT.SIZE_TRAIN,
+                mie_coe=cfg.MODEL.MIE_COE,
+                camera=camera_num,
+                stride_size=cfg.MODEL.STRIDE_SIZE,
+                drop_path_rate=cfg.MODEL.DROP_PATH,
+                drop_rate=cfg.MODEL.DROP_OUT,
+                attn_drop_rate=cfg.MODEL.ATT_DROP_RATE,
+                sse=cfg.MODEL.SSE,
+            )
+        else:
+            raise ValueError("Unsupported model type: {}".format(cfg.MODEL.TRANSFORMER_TYPE))
 
-        self.base = factory[cfg.MODEL.TRANSFORMER_TYPE](
-            img_size=cfg.INPUT.SIZE_TRAIN,
-            mie_coe=cfg.MODEL.MIE_COE,
-            camera=camera_num,
-            stride_size=cfg.MODEL.STRIDE_SIZE,
-            drop_path_rate=cfg.MODEL.DROP_PATH,
-            drop_rate=cfg.MODEL.DROP_OUT,
-            attn_drop_rate=cfg.MODEL.ATT_DROP_RATE,
-            sse=cfg.MODEL.SSE,
-        )
+        self.in_planes = self.base.embed_dim
+
         if pretrain_choice == "imagenet":
             self.base.load_param(model_path)
             print("Loading pretrained model......from {}".format(model_path))
@@ -210,9 +217,7 @@ class build_transformer(nn.Module):
                 name = k
             new_state_dict[name] = v
 
-        # 使用 load_state_dict 加载，strict=False 会忽略不匹配的键
-        # 比如，如果权重文件里有 logit_scale 但当前模型没有，它也不会报错
-        self.load_state_dict(new_state_dict, strict=False)
+        self.load_state_dict(new_state_dict)
         print("Loading pretrained model from {}".format(trained_path))
 
     def load_param_finetune(self, model_path):
@@ -224,6 +229,7 @@ class build_transformer(nn.Module):
 
 __factory_T_type = {
     "vit_base_patch16_224_TransOSS": vit_base_patch16_224_TransOSS,
+    "vit_large_patch16_224_TransOSS": vit_large_patch16_224_TransOSS,
 }
 
 

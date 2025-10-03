@@ -1,13 +1,13 @@
 MODEL:
-  PRETRAIN_CHOICE: 'imagenet'
-  PRETRAIN_PATH: "/home/share/chenfree/ReID/vit_b512_pre.pth"
+  PRETRAIN_CHOICE: 'None'
+  # PRETRAIN_PATH: "/home/share/chenfree/ReID/vit_base_p16_224-4e355ebd.pth"
   METRIC_LOSS_TYPE: 'triplet'
   IF_LABELSMOOTH: 'off'
   IF_WITH_CENTER: 'no'
   NAME: 'transformer'
   NO_MARGIN: True
   DEVICE_ID: ('0')
-  TRANSFORMER_TYPE: 'vit_base_patch16_224_TransOSS'
+  TRANSFORMER_TYPE: 'vit_large_patch16_224_TransOSS'
   STRIDE_SIZE: [16, 16]
   MIE: True
   MIE_COE: 3.0
@@ -30,7 +30,7 @@ DATASETS:
 DATALOADER:
   SAMPLER: 'softmax_triplet'
   NUM_INSTANCE: 4
-  NUM_WORKERS: 4
+  NUM_WORKERS: 8
 
 SOLVER:
   OPTIMIZER_NAME: 'SGD'
@@ -39,19 +39,18 @@ SOLVER:
   IMS_PER_BATCH: 32
   WARMUP_METHOD: 'linear'
   LARGE_FC_LR: False
-  CHECKPOINT_PERIOD: 50
-  LOG_PERIOD: 50
+  CHECKPOINT_PERIOD: 10
+  LOG_PERIOD: 80
   EVAL_PERIOD: 10
   WEIGHT_DECAY:  1e-4
   WEIGHT_DECAY_BIAS: 1e-4
   BIAS_LR_FACTOR: 2
 
 TEST:
-  EVAL: True
-  IMS_PER_BATCH: 32
+  IMS_PER_BATCH: 256
   RE_RANKING: False
-  WEIGHT: "/home/share/chenfree/ReID/HOSS_TransOSS.pth"
+  WEIGHT: ''
   NECK_FEAT: 'before'
   FEAT_NORM: 'yes'
 
-OUTPUT_DIR: './logs/hoss_test'
+OUTPUT_DIR: './logs/hoss_transoss_large_in1k'

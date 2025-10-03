@@ -1,27 +1,38 @@
-from PIL import Image, ImageFile
+from PIL import Image, ImageFile, UnidentifiedImageError
 
 from torch.utils.data import Dataset
 import os.path as osp
 import cv2
 import numpy as np
+import time
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 def read_image(img_path):
-    """Keep reading image until succeed.
-    This can avoid IOError incurred by heavy IO process."""
+    """
+    一个更健壮的图像读取函数，带有重试机制以应对高并发I/O问题。
+    """
     got_img = False
     if not osp.exists(img_path):
         raise IOError("{} does not exist".format(img_path))
-    while not got_img:
+
+    # 2. 增加重试循环
+    for _ in range(5):  # 最多重试5次
         try:
             img = Image.open(img_path)
-            got_img = True
-        except IOError:
-            print("IOError incurred when reading '{}'. Will redo. Don't worry. Just chill.".format(img_path))
-            pass
-    return img
+            # 确认图像数据被完整加载
+            # 对于某些损坏的文件，仅open()可能不报错，需要加载数据
+            img.load()
+            return img
+        except (IOError, UnidentifiedImageError) as e:
+            print(f"警告: 读取图像 '{img_path}' 时出错 ({e})。将在0.1秒后重试...")
+            time.sleep(0.1)  # 稍等片刻，给文件系统响应时间
+
+    # 如果重试5次后仍然失败
+    print(f"致命错误: 多次尝试后仍无法读取图像 '{img_path}'。")
+    # 抛出异常，因为这个文件可能确实存在严重问题
+    raise IOError(f"Failed to read image {img_path} after multiple retries.")
 
 
 def sar32bit2RGB(img):

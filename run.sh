@@ -1,9 +1,9 @@
 #! /bin/bash
-#SBATCH --job-name=hjj
-#SBATCH --output hjj.out
+#SBATCH --job-name=reid
+#SBATCH --output reid_b.out
 #SBATCH --nodes=1
 #SBATCH -c 20
-#SBATCH -p 3090 --gres=gpu:1 --nodelist=gpu19
+#SBATCH -p 3090 --gres=gpu:8 --nodelist=gpu9
 #SBATCH --time=100:00:00
 
 # Source global definitions
@@ -29,10 +29,8 @@ unset __conda_setup
 cd /home/chenfree2002/Python/Hoss-ReID
 conda activate hoss
 
-# python train_hjj.py
+# CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node=4 --master_port 6669 train.py MODEL.DIST_TRAIN True
 
+# python train.py
 
-# CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node=4 --master_port 6667 train_hjj.py --config_file configs/hjj.yml MODEL.DIST_TRAIN True
-
-
-python inference_new.py --test_dir /home/share/chenfree/ReID/Aircraft_new/val_set --output_path ./result.xml
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python -m torch.distributed.launch --nproc_per_node=8 --master_port 6699 train_pair.py --config_file configs/pretrain_transoss.yml MODEL.DIST_TRAIN True

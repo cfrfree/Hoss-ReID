@@ -45,7 +45,7 @@ if __name__ == "__main__":
         os.makedirs(output_dir)
 
     logger = setup_logger("transreid", output_dir, if_train=True)
-    logger.info("Saving model in the path :{}".format(cfg.OUTPUT_DIR))
+    logger.info("Saving model in the path :{}".format(output_dir))
     logger.info(args)
 
     if args.config_file != "":

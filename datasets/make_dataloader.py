@@ -70,14 +70,11 @@ def make_dataloader(cfg):
     num_workers = cfg.DATALOADER.NUM_WORKERS
 
     dataset = __factory[cfg.DATASETS.NAMES](root=cfg.DATASETS.ROOT_DIR)
-    if not cfg.TEST.EVAL:
-        train_set = ImageDataset(dataset.train, train_transforms)
-        train_set_normal = ImageDataset(dataset.train, val_transforms)
-        num_classes = dataset.num_train_pids
-        cam_num = dataset.num_train_cams
-    else:
-        num_classes = 361
-        cam_num = 2
+
+    train_set = ImageDataset(dataset.train, train_transforms)
+    train_set_normal = ImageDataset(dataset.train, val_transforms)
+    num_classes = dataset.num_train_pids
+    cam_num = dataset.num_train_cams
 
     if "triplet" in cfg.DATALOADER.SAMPLER:
         if cfg.MODEL.DIST_TRAIN:
@@ -93,14 +90,13 @@ def make_dataloader(cfg):
                 pin_memory=True,
             )
         else:
-            if not cfg.TEST.EVAL:
-                train_loader = DataLoader(
-                    train_set,
-                    batch_size=cfg.SOLVER.IMS_PER_BATCH,
-                    sampler=RandomIdentitySampler(dataset.train, cfg.SOLVER.IMS_PER_BATCH, cfg.DATALOADER.NUM_INSTANCE),
-                    num_workers=num_workers,
-                    collate_fn=train_collate_fn,
-                )
+            train_loader = DataLoader(
+                train_set,
+                batch_size=cfg.SOLVER.IMS_PER_BATCH,
+                sampler=RandomIdentitySampler(dataset.train, cfg.SOLVER.IMS_PER_BATCH, cfg.DATALOADER.NUM_INSTANCE),
+                num_workers=num_workers,
+                collate_fn=train_collate_fn,
+            )
     elif cfg.DATALOADER.SAMPLER == "softmax":
         print("using softmax sampler")
         train_loader = DataLoader(train_set, batch_size=cfg.SOLVER.IMS_PER_BATCH, shuffle=True, num_workers=num_workers, collate_fn=train_collate_fn)
@@ -108,17 +104,30 @@ def make_dataloader(cfg):
         print("unsupported sampler! expected softmax or triplet but got {}".format(cfg.SAMPLER))
 
     val_set = ImageDataset(dataset.query + dataset.gallery, val_transforms)
+
     val_loader = DataLoader(val_set, batch_size=cfg.TEST.IMS_PER_BATCH, shuffle=False, num_workers=num_workers, collate_fn=val_collate_fn)
-    if not cfg.TEST.EVAL:
-        train_loader_normal = DataLoader(
-            train_set_normal, batch_size=cfg.TEST.IMS_PER_BATCH, shuffle=False, num_workers=num_workers, collate_fn=val_collate_fn
-        )
+    train_loader_normal = DataLoader(
+        train_set_normal, batch_size=cfg.TEST.IMS_PER_BATCH, shuffle=False, num_workers=num_workers, collate_fn=val_collate_fn
+    )
     if cfg.SOLVER.IMS_PER_BATCH % 2 != 0:
         raise ValueError("cfg.SOLVER.IMS_PER_BATCH should be even number")
-    if not cfg.TEST.EVAL:
-        return train_loader, train_loader_normal, val_loader, len(dataset.query), num_classes, cam_num
-    else:
-        return val_loader, len(dataset.query), num_classes, cam_num
+    return train_loader, train_loader_normal, val_loader, len(dataset.query), num_classes, cam_num
+
+
+def make_dataloader_test(cfg):
+    val_transforms = T.Compose([T.Resize(cfg.INPUT.SIZE_TEST), T.ToTensor(), T.Normalize(mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD)])
+
+    num_workers = cfg.DATALOADER.NUM_WORKERS
+
+    dataset = __factory[cfg.DATASETS.NAMES](root=cfg.DATASETS.ROOT_DIR)
+    num_classes = 361
+    cam_num = 2
+
+    val_set = ImageDataset(dataset.query + dataset.gallery, val_transforms)
+    val_loader = DataLoader(val_set, batch_size=cfg.TEST.IMS_PER_BATCH, shuffle=False, num_workers=num_workers, collate_fn=val_collate_fn)
+    if cfg.SOLVER.IMS_PER_BATCH % 2 != 0:
+        raise ValueError("cfg.SOLVER.IMS_PER_BATCH should be even number")
+    return val_loader, len(dataset.query), num_classes, cam_num
 
 
 def make_dataloader_pair(cfg):

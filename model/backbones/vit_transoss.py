@@ -507,6 +507,41 @@ def vit_base_patch16_224_TransOSS(
     return model
 
 
+def vit_large_patch16_224_TransOSS(
+    img_size=(256, 128),
+    stride_size=16,
+    drop_rate=0.0,
+    attn_drop_rate=0.0,
+    drop_path_rate=0.1,
+    camera=0,
+    local_feature=False,
+    mie_coe=1.5,
+    sse=False,
+    **kwargs,
+):
+    model = TransOSS(
+        img_size=img_size,
+        patch_size=16,
+        stride_size=stride_size,
+        embed_dim=1024,
+        depth=24,
+        num_heads=16,
+        mlp_ratio=4,
+        qkv_bias=True,
+        camera=camera,
+        drop_path_rate=drop_path_rate,
+        drop_rate=drop_rate,
+        attn_drop_rate=attn_drop_rate,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6),
+        mie_coe=mie_coe,
+        local_feature=local_feature,
+        sse=sse,
+        **kwargs,
+    )
+
+    return model
+
+
 def _no_grad_trunc_normal_(tensor, mean, std, a, b):
     # Cut & paste from PyTorch official master until it's in a few official releases - RW
     # Method based on https://people.sc.fsu.edu/~jburkardt/presentations/truncated_normal.pdf

@@ -1,11 +1,10 @@
 import os
 from config import cfg
 import argparse
-from datasets import make_dataloader
+from datasets import make_dataloader_test
 from model import make_model
 from processor import do_inference
 from utils.logger import setup_logger
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="TransOSS Testing")
@@ -35,7 +34,7 @@ if __name__ == "__main__":
 
     os.environ["CUDA_VISIBLE_DEVICES"] = cfg.MODEL.DEVICE_ID
 
-    val_loader, num_query, num_classes, camera_num = make_dataloader(cfg)
+    val_loader, num_query, num_classes, camera_num = make_dataloader_test(cfg)
 
     model = make_model(cfg, num_class=num_classes, camera_num=camera_num)
     model.load_param(cfg.TEST.WEIGHT)
