@@ -1,9 +1,9 @@
 #! /bin/bash
 #SBATCH --job-name=reid
-#SBATCH --output reid_b.out
+#SBATCH --output pretrain_large_plus.out
 #SBATCH --nodes=1
 #SBATCH -c 20
-#SBATCH -p 3090 --gres=gpu:8 --nodelist=gpu9
+#SBATCH -p 3090 --gres=gpu:8 --nodelist=gpu19
 #SBATCH --time=100:00:00
 
 # Source global definitions
@@ -29,7 +29,6 @@ unset __conda_setup
 cd /home/chenfree2002/Python/Hoss-ReID
 conda activate hoss
 
-# CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node=4 --master_port 6669 train.py MODEL.DIST_TRAIN True
 
 # python train.py
 

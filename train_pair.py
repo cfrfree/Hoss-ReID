@@ -9,6 +9,7 @@ import random
 import torch
 import numpy as np
 import os
+import re
 import argparse
 from config import cfg
 
@@ -62,11 +63,25 @@ if __name__ == "__main__":
     train_loader_pair, num_classes, camera_num = make_dataloader_pair(cfg)
 
     model = make_model(cfg, num_class=num_classes, camera_num=camera_num)
+    start_epoch = 1
+    if cfg.SOLVER.RESUME_PATH != "":
+        logger.info(f"Resuming from checkpoint: {cfg.SOLVER.RESUME_PATH}")
+        # 加载模型权重
+        model.load_param(cfg.SOLVER.RESUME_PATH)
 
+        # 从文件名中提取 epoch 数
+        # 例如: 从 '.../transformer_20.pth' 中提取 '20'
+        try:
+            epoch_str = re.search(r"_(\d+)\.pth$", cfg.SOLVER.RESUME_PATH).group(1)
+            start_epoch = int(epoch_str) + 1
+            logger.info(f"Will start training from epoch {start_epoch}")
+        except Exception as e:
+            logger.warning(f"Could not parse epoch from filename. Starting from epoch 1. Error: {e}")
+            start_epoch = 1
     loss_func, center_criterion = make_loss(cfg, num_classes=num_classes)
 
     optimizer, optimizer_center = make_optimizer(cfg, model, center_criterion)
 
     scheduler = create_scheduler(cfg, optimizer)
 
-    do_train_pair(cfg, model, train_loader_pair, optimizer, scheduler, args.local_rank)
+    do_train_pair(cfg, model, train_loader_pair, optimizer, scheduler, args.local_rank, start_epoch)

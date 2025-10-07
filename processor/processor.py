@@ -10,7 +10,7 @@ import torch.distributed as dist
 from loss import clip_loss
 
 
-def do_train_pair(cfg, model, train_loader_pair, optimizer, scheduler, local_rank):
+def do_train_pair(cfg, model, train_loader_pair, optimizer, scheduler, local_rank, start_epoch=1):
     log_period = cfg.SOLVER.LOG_PERIOD
     checkpoint_period = cfg.SOLVER.CHECKPOINT_PERIOD
 
@@ -36,7 +36,7 @@ def do_train_pair(cfg, model, train_loader_pair, optimizer, scheduler, local_ran
             model.module.train_with_pair()
         else:
             model.train_with_pair()
-        for epoch in range(1, epochs + 1):
+        for epoch in range(start_epoch, epochs + 1):
             start_time = time.time()
             loss_meter.reset()
             scheduler.step(epoch)
