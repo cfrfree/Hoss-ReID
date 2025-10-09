@@ -1,0 +1,52 @@
+MODEL:
+  PRETRAIN_CHOICE: 'imagenet' # 依然可以从ImageNet加载骨干权重
+  PRETRAIN_PATH: "/home/share/chenfree/ReID/jx_vit_base_p16_224-80ecf9dd.pth"
+  NAME: 'transformer_mae'
+  DEVICE_ID: ('0')
+  TRANSFORMER_TYPE: 'vit_base_patch16_224_TransOSS' # 基础模型类型
+  STRIDE_SIZE: [16, 16]
+
+  # --- MAE Specific Settings ---
+  MIE: True # 必须开启，以区分模态
+  MIE_COE: 3.0
+  SSE: False # MAE阶段可以先不开
+  MAE_MASK_RATIO: 0.75
+
+  # Encoder dimensions (与 TransOSS 保持一致)
+  MAE_ENCODER_DIM: 768
+  MAE_ENCODER_DEPTH: 12
+  MAE_ENCODER_NUM_HEADS: 12
+  
+  # Decoder dimensions (可以设置得轻量一些)
+  MAE_DECODER_DIM: 512
+  MAE_DECODER_DEPTH: 8
+  MAE_DECODER_NUM_HEADS: 16
+
+INPUT:
+  SIZE_TRAIN: [256, 128]
+  SIZE_TEST: [256, 128]
+  PROB: 0.5
+  RE_PROB: 0.0 # MAE预训练通常不使用Random Erasing
+  PADDING: 10
+  PIXEL_MEAN: [0.485, 0.456, 0.406]
+  PIXEL_STD: [0.229, 0.224, 0.225]
+
+DATASETS:
+  NAMES: ('Pretrain')
+  ROOT_DIR: ('/home/share/chenfree/ReID/')
+
+DATALOADER:
+  SAMPLER: 'softmax' # MAE不需要triplet sampler
+  NUM_WORKERS: 8
+
+SOLVER:
+  OPTIMIZER_NAME: 'AdamW' # AdamW通常在MAE上效果更好
+  MAX_EPOCHS: 200 # MAE可能需要更多epochs
+  BASE_LR: 0.001
+  IMS_PER_BATCH: 256
+  WARMUP_EPOCHS: 20
+  WEIGHT_DECAY:  0.05
+  CHECKPOINT_PERIOD: 20
+  LOG_PERIOD: 50
+
+OUTPUT_DIR: './logs/pretrain_mae'
