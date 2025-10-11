@@ -1,10 +1,10 @@
 MODEL:
   PRETRAIN_CHOICE: 'imagenet'
-  PRETRAIN_PATH: "/home/chenfree2002/Python/Hoss-ReID/logs/pretrain_large_plus/transformer_45.pth"
+  PRETRAIN_PATH: "/home/share/chenfree/ReID/jx_vit_base_p16_224-80ecf9dd.pth"
   NAME: 'transformer'
   NO_MARGIN: True
   DEVICE_ID: ('0')
-  TRANSFORMER_TYPE: 'vit_large_patch16_224_TransOSS'
+  TRANSFORMER_TYPE: 'vit_base_patch16_224_TransOSS'
   STRIDE_SIZE: [16,16]
   MIE: True
   MIE_COE: 3.0
@@ -33,7 +33,7 @@ SOLVER:
   OPTIMIZER_NAME: 'SGD'
   MAX_EPOCHS: 60
   BASE_LR: 0.003
-  IMS_PER_BATCH: 64
+  IMS_PER_BATCH: 256
   WARMUP_METHOD: 'linear'
   LARGE_FC_LR: False
   CHECKPOINT_PERIOD: 5
@@ -42,7 +42,6 @@ SOLVER:
   WEIGHT_DECAY:  1e-4
   WEIGHT_DECAY_BIAS: 1e-4
   BIAS_LR_FACTOR: 2
-  RESUME_PATH: '/home/chenfree2002/Python/Hoss-ReID/logs/pretrain_large_plus/transformer_45.pth'
 
 TEST:
   IMS_PER_BATCH: 256
@@ -51,4 +50,4 @@ TEST:
   NECK_FEAT: 'before'
   FEAT_NORM: 'yes'
 
-OUTPUT_DIR: './logs/pretrain_large_plus'
+OUTPUT_DIR: './logs/pretrain_base_plus'

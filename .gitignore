@@ -13,14 +13,19 @@
 core*
 # KDE directory preferences
 .directory
-
+scrips/
 # Linux trash folder which might appear on any partition or disk
 .Trash-*
 
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
+configs/pretrain_transoss_simsiam.yml
+configs/pretrain_transoss_mae.yml
 
-
+model/backbones/vit_transoss_mae.py
+model/backbones/vit_transoss_simsiam.py
+train_mae.py
+train_simsiam.py
 *.DS_Store
 .AppleDouble
 .LSOverride

@@ -1,6 +1,6 @@
 MODEL:
   PRETRAIN_CHOICE: 'imagenet'
-  PRETRAIN_PATH: "/home/chenfree2002/Python/Hoss-ReID/logs/pretrain_simsiam/simsiam_encoder_70.pth"
+  PRETRAIN_PATH: /home/chenfree2002/Python/Hoss-ReID/logs/pretrain_base_plus/transformer_60.pth
   METRIC_LOSS_TYPE: 'triplet'
   IF_LABELSMOOTH: 'off'
   IF_WITH_CENTER: 'no'
@@ -53,4 +53,4 @@ TEST:
   NECK_FEAT: 'before'
   FEAT_NORM: 'yes'
 
-OUTPUT_DIR: './logs/hoss_transoss_large_simsiam'
+OUTPUT_DIR: './logs/hoss_transoss_base_pre'
