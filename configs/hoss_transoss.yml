@@ -1,6 +1,6 @@
 MODEL:
   PRETRAIN_CHOICE: 'imagenet'
-  PRETRAIN_PATH: /home/chenfree2002/Python/Hoss-ReID/logs/pretrain_base_plus/transformer_60.pth
+  PRETRAIN_PATH: /home/chenfree2002/Python/Hoss-ReID/logs/pretrain_base/transformer_60.pth
   METRIC_LOSS_TYPE: 'triplet'
   IF_LABELSMOOTH: 'off'
   IF_WITH_CENTER: 'no'
@@ -49,8 +49,8 @@ SOLVER:
 TEST:
   IMS_PER_BATCH: 256
   RE_RANKING: False
-  WEIGHT: ''
+  WEIGHT: 'logs/hoss_transoss_base/transformer_200.pth'
   NECK_FEAT: 'before'
   FEAT_NORM: 'yes'
 
-OUTPUT_DIR: './logs/hoss_transoss_base_pre'
+OUTPUT_DIR: './logs/hoss_transoss_base'

@@ -1,7 +1,7 @@
 /data/HOSS/
 /logs/
 /weights/
-# *.sh
+*.sh
 *.out
 *.zip
 *.xml

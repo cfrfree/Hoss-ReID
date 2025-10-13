@@ -3,7 +3,7 @@
 #SBATCH --output pretrain.out
 #SBATCH --nodes=1
 #SBATCH -c 20
-#SBATCH -p 3090 --gres=gpu:8 --nodelist=gpu19
+#SBATCH -p 3090 --gres=gpu:1 --nodelist=gpu19
 #SBATCH --time=100:00:00
 
 # Source global definitions
@@ -32,6 +32,8 @@ conda activate hoss
 
 # python train.py
 
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python -m torch.distributed.launch --nproc_per_node=8 --master_port 6699 train_pair.py --config_file configs/pretrain_transoss.yml MODEL.DIST_TRAIN True
+python test.py
+
+# CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python -m torch.distributed.launch --nproc_per_node=8 --master_port 6699 train_pair.py --config_file configs/pretrain_transoss.yml MODEL.DIST_TRAIN True
 
 # CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python -m torch.distributed.launch --nproc_per_node=8 --master_port 6668 train_simsiam.py MODEL.DIST_TRAIN True

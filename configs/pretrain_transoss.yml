@@ -21,8 +21,8 @@ INPUT:
   PIXEL_STD: [0.229, 0.224, 0.225]
 
 DATASETS:
-  NAMES: ('Pretrain')
-  ROOT_DIR: ('/home/share/chenfree/ReID/')
+  NAMES: 'Pretrain'
+  ROOT_DIR: '/home/share/chenfree/ReID/'
 
 DATALOADER:
   SAMPLER: 'softmax_triplet'
@@ -50,4 +50,4 @@ TEST:
   NECK_FEAT: 'before'
   FEAT_NORM: 'yes'
 
-OUTPUT_DIR: './logs/pretrain_base_plus'
+OUTPUT_DIR: './logs/pretrain_base'

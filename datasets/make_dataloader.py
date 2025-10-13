@@ -145,7 +145,6 @@ def make_dataloader_pair(cfg):
     )
 
     num_workers = cfg.DATALOADER.NUM_WORKERS
-
     dataset = __factory[cfg.DATASETS.NAMES](root=cfg.DATASETS.ROOT_DIR)
 
     train_set_pair = ImageDataset(dataset.train_pair, train_transforms, pair=True, output_dir=cfg.OUTPUT_DIR)

@@ -8,7 +8,7 @@ from utils.logger import setup_logger
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="TransOSS Testing")
-    parser.add_argument("--config_file", default="configs/HOSS/hoss_transoss.yml", help="path to config file", type=str)
+    parser.add_argument("--config_file", default="configs/hoss_transoss.yml", help="path to config file", type=str)
     parser.add_argument("opts", help="Modify config options using the command-line", default=None, nargs=argparse.REMAINDER)
 
     args = parser.parse_args()

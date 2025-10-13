@@ -26,7 +26,7 @@ def set_seed(seed):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="TransOSS Pretraining")
-    parser.add_argument("--config_file", default="", help="path to config file", type=str)
+    parser.add_argument("--config_file", default="configs/pretrain_transoss.yml", help="path to config file", type=str)
     parser.add_argument("opts", help="Modify config options using the command-line", default=None, nargs=argparse.REMAINDER)
     parser.add_argument("--local-rank", default=0, type=int)
     args = parser.parse_args()
@@ -68,9 +68,6 @@ if __name__ == "__main__":
         logger.info(f"Resuming from checkpoint: {cfg.SOLVER.RESUME_PATH}")
         # 加载模型权重
         model.load_param(cfg.SOLVER.RESUME_PATH)
-
-        # 从文件名中提取 epoch 数
-        # 例如: 从 '.../transformer_20.pth' 中提取 '20'
         try:
             epoch_str = re.search(r"_(\d+)\.pth$", cfg.SOLVER.RESUME_PATH).group(1)
             start_epoch = int(epoch_str) + 1
